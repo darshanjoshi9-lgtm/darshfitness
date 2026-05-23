@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darshan's Calorie Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#181b22; --panel2:#1f232c; --line:#2a2f3a;
+    --text:#e8eaee; --muted:#9aa3b2; --accent:#4ade80; --accent2:#38bdf8;
+    --warn:#f59e0b; --danger:#ef4444;
+    --protein:#f472b6; --carbs:#fbbf24; --fat:#a78bfa; --fiber:#34d399;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,#0d0f13,#0f1115); color:var(--text); line-height:1.5;
+  }
+  header{
+    padding:22px 20px 16px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  }
+  h1{font-size:20px; margin:0; display:flex; align-items:center; gap:10px}
+  h1 .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  .wrap{max-width:1100px; margin:0 auto; padding:20px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  @media (max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px}
+  .card h2{font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 14px}
+  label{display:block; font-size:12px; color:var(--muted); margin:0 0 5px}
+  input,select,button{font-family:inherit; font-size:14px}
+  input[type=text],input[type=number],input[type=time],input[type=date],select{
+    width:100%; padding:10px 12px; background:var(--panel2); border:1px solid var(--line);
+    color:var(--text); border-radius:10px; outline:none;
+  }
+  input:focus,select:focus{border-color:var(--accent2)}
+  .row{display:flex; gap:12px}
+  .row > div{flex:1}
+  button{
+    cursor:pointer; border:none; border-radius:10px; padding:11px 16px; font-weight:600;
+    background:var(--accent); color:#06240f; transition:filter .15s;
+  }
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:var(--panel2); color:var(--text); border:1px solid var(--line)}
+  button.sm{padding:6px 10px; font-size:12px}
+  .field{margin-bottom:13px}
+  .uploader{
+    border:1.5px dashed var(--line); border-radius:12px; padding:18px; text-align:center;
+    color:var(--muted); cursor:pointer; transition:border-color .15s; background:var(--panel2);
+  }
+  .uploader:hover{border-color:var(--accent2)}
+  .uploader img{max-width:100%; max-height:160px; border-radius:8px; margin-top:8px}
+  .est{font-size:12px; color:var(--accent); margin-top:6px; min-height:16px}
+  .macroInputs{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+  .bigstat{display:flex; align-items:baseline; gap:10px; margin-bottom:6px}
+  .bigstat .num{font-size:42px; font-weight:700}
+  .bigstat .unit{color:var(--muted)}
+  .progress{height:12px; background:var(--panel2); border-radius:99px; overflow:hidden; margin:10px 0 6px}
+  .progress > div{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0; transition:width .4s}
+  .progress.over > div{background:linear-gradient(90deg,var(--warn),var(--danger))}
+  .sub{font-size:13px; color:var(--muted)}
+  .macroStats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px}
+  .mstat{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px}
+  .mstat .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+  .mstat .v{font-size:20px; font-weight:700; font-variant-numeric:tabular-nums}
+  .mstat .g{font-size:11px; color:var(--muted)}
+  .mbar{height:5px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:6px}
+  .mbar > div{height:100%; width:0; transition:width .4s}
+  .mstat.p .mbar>div{background:var(--protein)} .mstat.p .v{color:var(--protein)}
+  .mstat.c .mbar>div{background:var(--carbs)} .mstat.c .v{color:var(--carbs)}
+  .mstat.f .mbar>div{background:var(--fat)} .mstat.f .v{color:var(--fat)}
+  .mstat.fb .mbar>div{background:var(--fiber)} .mstat.fb .v{color:var(--fiber)}
+  .timeline{list-style:none; padding:0; margin:0}
+  .timeline li{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line)}
+  .timeline li:last-child{border-bottom:none}
+  .timeline .t{font-variant-numeric:tabular-nums; color:var(--accent2); font-weight:600; width:64px; flex-shrink:0}
+  .timeline .thumb{width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--panel2)}
+  .timeline .meta{flex:1; min-width:0}
+  .timeline .name{font-weight:500}
+  .timeline .macros{font-size:11px; color:var(--muted)}
+  .timeline .cal{color:var(--muted); font-variant-numeric:tabular-nums; flex-shrink:0}
+  .timeline .del{background:transparent;color:var(--muted);padding:4px 8px;font-size:16px;line-height:1; width:auto}
+  .timeline .del:hover{color:var(--danger)}
+  .empty{color:var(--muted); font-size:13px; padding:8px 0}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .datepick{display:flex; align-items:center; gap:8px}
+  .weekgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:10px}
+  .weekgrid .d{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 4px; text-align:center}
+  .weekgrid .d .dow{font-size:10px; color:var(--muted); text-transform:uppercase}
+  .weekgrid .d .v{font-size:14px; font-weight:600; font-variant-numeric:tabular-nums}
+  .pill{display:inline-block; padding:3px 9px; border-radius:99px; background:var(--panel2); border:1px solid var(--line); font-size:12px; color:var(--muted)}
+  .full{grid-column:1 / -1}
+  footer{color:var(--muted); font-size:12px; text-align:center; padding:24px}
+  .user{display:flex; align-items:center; gap:8px; font-size:13px}
+  .user img{width:28px;height:28px;border-radius:50%}
+  /* sign-in overlay */
+  #overlay{position:fixed; inset:0; background:rgba(10,12,16,.92); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px}
+  .signin{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:34px; max-width:420px; width:100%; text-align:center}
+  .signin h2{font-size:22px; margin:0 0 6px; text-transform:none; letter-spacing:0; color:var(--text)}
+  .signin p{color:var(--muted); font-size:14px; margin:0 0 22px}
+  #gbtn{display:flex; justify-content:center; margin-bottom:16px; min-height:44px}
+  .notice{font-size:12px; color:var(--warn); background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.3); border-radius:10px; padding:10px 12px; margin-bottom:16px; text-align:left}
+  .notice a{color:var(--accent2)}
+  details{text-align:left; font-size:12px; color:var(--muted); margin-top:10px}
+  details summary{cursor:pointer; color:var(--accent2)}
+  details ol{margin:8px 0; padding-left:18px} details li{margin:4px 0}
+  code{background:var(--panel2); padding:1px 5px; border-radius:5px; font-size:11px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- ============ SIGN-IN OVERLAY ============ -->
+<div id="overlay">
+  <div class="signin">
+    <h2>Darshan's Calorie Tracker</h2>
+    <p>Sign in to keep your nutrition data separate and private.</p>
+    <div id="gbtn"></div>
+    <div id="signinNotice" class="notice hidden"></div>
+    <button class="ghost" style="width:100%" onclick="signInGuest()">Continue as guest (local only)</button>
+    <details>
+      <summary>How to enable real Google Sign-In</summary>
+      <ol>
+        <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console → Credentials</a> and create an <b>OAuth 2.0 Client ID</b> (type: Web application).</li>
+        <li>Under <b>Authorized JavaScript origins</b> add the address you'll open this from, e.g. <code>http://localhost:8000</code>.</li>
+        <li>Copy the Client ID and paste it into the <code>GOOGLE_CLIENT_ID</code> line near the top of this file's script.</li>
+        <li>Serve the folder (don't just double-click): in a terminal run <code>python -m http.server 8000</code> inside this folder, then open <code>http://localhost:8000/calorie-tracker.html</code>.</li>
+      </ol>
+      See <b>SETUP-google-login.md</b> in this folder for the full walkthrough.
+    </details>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+<header>
+  <h1><span class="dot"></span>Darshan's Calorie Tracker</h1>
+  <div class="toolbar">
+    <span class="pill" id="goalPill">Goal: 2000 kcal</span>
+    <button class="ghost sm" onclick="exportData()">Export backup</button>
+    <button class="ghost sm" onclick="document.getElementById('importFile').click()">Import backup</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <span class="user" id="userBox"></span>
+    <button class="ghost sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- LOG ENTRY -->
+    <div class="card">
+      <h2>Log a meal</h2>
+      <div class="field">
+        <label>Photo (optional)</label>
+        <div class="uploader" id="dropzone" onclick="document.getElementById('photoInput').click()">
+          <span id="dropText">Click to add a photo of your food</span>
+          <div id="preview"></div>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+      </div>
+      <div class="field">
+        <label>Dish name</label>
+        <input type="text" id="dishName" placeholder="e.g. Paneer butter masala, Chicken biryani, Banana" oninput="onDishInput()" list="dishList">
+        <datalist id="dishList"></datalist>
+        <div class="est" id="estimate"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Calories (kcal)</label>
+          <input type="number" id="calories" placeholder="0" min="0">
+        </div>
+        <div class="field">
+          <label>Time</label>
+          <input type="time" id="mealTime">
+        </div>
+      </div>
+      <div class="field">
+        <label>Nutrition (grams) — auto-filled, editable</label>
+        <div class="macroInputs">
+          <div><label style="color:var(--protein)">Protein</label><input type="number" id="mProtein" min="0" placeholder="0"></div>
+          <div><label style="color:var(--carbs)">Carbs</label><input type="number" id="mCarbs" min="0" placeholder="0"></div>
+          <div><label style="color:var(--fat)">Fat</label><input type="number" id="mFat" min="0" placeholder="0"></div>
+          <div><label style="color:var(--fiber)">Fiber</label><input type="number" id="mFiber" min="0" placeholder="0"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="mealDate">
+      </div>
+      <button onclick="addEntry()" style="width:100%">Add entry</button>
+    </div>
+
+    <!-- DAILY SUMMARY -->
+    <div class="card">
+      <h2>Today</h2>
+      <div class="datepick" style="margin-bottom:12px">
+        <button class="ghost sm" onclick="shiftDay(-1)">‹</button>
+        <input type="date" id="viewDate" onchange="render()" style="max-width:170px">
+        <button class="ghost sm" onclick="shiftDay(1)">›</button>
+        <button class="ghost sm" onclick="goToday()">Today</button>
+      </div>
+      <div class="bigstat">
+        <span class="num" id="dayTotal">0</span>
+        <span class="unit">/ <span id="dayGoal">2000</span> kcal</span>
+      </div>
+      <div class="progress" id="progressWrap"><div id="progressBar"></div></div>
+      <div class="sub" id="remaining">2000 kcal remaining</div>
+
+      <div class="macroStats">
+        <div class="mstat p"><div class="lbl">Protein</div><div class="v"><span id="tProtein">0</span>g</div><div class="g">/ <span id="gProtein">120</span>g</div><div class="mbar"><div id="bProtein"></div></div></div>
+        <div class="mstat c"><div class="lbl">Carbs</div><div class="v"><span id="tCarbs">0</span>g</div><div class="g">/ <span id="gCarbs">250</span>g</div><div class="mbar"><div id="bCarbs"></div></div></div>
+        <div class="mstat f"><div class="lbl">Fat</div><div class="v"><span id="tFat">0</span>g</div><div class="g">/ <span id="gFat">65</span>g</div><div class="mbar"><div id="bFat"></div></div></div>
+        <div class="mstat fb"><div class="lbl">Fiber</div><div class="v"><span id="tFiber">0</span>g</div><div class="g">/ <span id="gFiber">30</span>g</div><div class="mbar"><div id="bFiber"></div></div></div>
+      </div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="card full">
+      <h2>Daily goals</h2>
+      <div class="row" style="flex-wrap:wrap">
+        <div class="field"><label>Calories</label><input type="number" id="goalInput" min="0"></div>
+        <div class="field"><label>Protein (g)</label><input type="number" id="goalProtein" min="0"></div>
+        <div class="field"><label>Carbs (g)</label><input type="number" id="goalCarbs" min="0"></div>
+        <div class="field"><label>Fat (g)</label><input type="number" id="goalFat" min="0"></div>
+        <div class="field"><label>Fiber (g)</label><input type="number" id="goalFiber" min="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button class="ghost" onclick="saveGoal()" style="width:100%">Save goals</button></div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="card full">
+      <h2>Timeline · <span id="timelineDate"></span></h2>
+      <ul class="timeline" id="timeline"></ul>
+    </div>
+
+    <!-- TRENDS -->
+    <div class="card full">
+      <h2>History &amp; trends (last 14 days)</h2>
+      <canvas id="trendChart" height="110"></canvas>
+    </div>
+
+    <!-- WEEKLY -->
+    <div class="card full">
+      <h2>Weekly summary</h2>
+      <div class="bigstat">
+        <span class="num" id="weekAvg" style="font-size:32px">0</span>
+        <span class="unit">kcal / day average (last 7 days)</span>
+      </div>
+      <div class="weekgrid" id="weekGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Your data is stored privately per account in this browser, plus any backups you export.</footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — paste your Google OAuth Client ID here to enable
+   real "Sign in with Google". Leave empty to use guest mode.
+   ============================================================ */
+const GOOGLE_CLIENT_ID = ""; // e.g. "1234567890-abcdef.apps.googleusercontent.com"
+
+/* ---------- Food database: [calories, protein, carbs, fat, fiber] (per typical serving, grams) ---------- */
+const FOOD_DB = {
+  "paneer butter masala":[450,15,20,35,4],"butter chicken":[490,30,12,35,2],"chicken biryani":[600,35,70,20,4],
+  "mutton biryani":[650,35,70,28,4],"veg biryani":[480,10,75,15,6],"dal makhani":[380,15,40,18,10],
+  "dal tadka":[240,12,35,6,9],"chana masala":[330,13,45,10,12],"rajma":[350,14,50,8,14],
+  "palak paneer":[350,16,14,26,5],"chole bhature":[700,18,90,28,12],"masala dosa":[390,8,60,12,4],
+  "plain dosa":[170,4,30,4,2],"idli":[40,2,8,0,1],"vada":[150,4,18,7,2],"medu vada":[180,5,20,9,3],
+  "upma":[250,6,40,8,3],"poha":[270,6,50,6,3],"samosa":[260,4,30,14,3],"pav bhaji":[400,10,55,16,8],
+  "aloo paratha":[300,7,45,10,4],"paratha":[260,6,36,10,3],"plain roti":[110,3,22,1,3],"chapati":[110,3,22,1,3],
+  "naan":[260,9,45,5,2],"butter naan":[320,9,45,12,2],"garlic naan":[300,9,45,10,2],
+  "tandoori chicken":[260,35,4,12,1],"chicken tikka":[220,30,5,9,1],"fish curry":[300,25,10,18,2],
+  "egg curry":[280,16,10,20,2],"veg pulao":[350,8,60,9,4],"jeera rice":[250,5,48,5,2],"plain rice":[200,4,44,0,1],
+  "curd rice":[260,8,40,7,1],"sambar":[120,6,18,3,5],"rasam":[60,2,10,1,2],"gulab jamun":[150,2,25,5,0],
+  "jalebi":[150,1,30,4,0],"rasgulla":[120,3,25,1,0],"kheer":[250,7,40,7,1],"halwa":[350,4,50,15,2],
+  "laddu":[180,3,25,8,1],"vada pav":[300,7,45,10,4],"pani puri":[180,4,30,5,3],"bhel puri":[250,6,40,8,5],
+  "dhokla":[160,6,25,4,3],"kachori":[250,5,28,13,3],
+  "banana":[105,1,27,0,3],"apple":[95,0,25,0,4],"orange":[62,1,15,0,3],"mango":[200,3,50,1,5],
+  "grapes":[104,1,27,0,1],"watermelon":[85,2,21,0,1],"salad":[120,3,12,7,4],"green salad":[80,2,10,4,4],
+  "boiled egg":[78,6,1,5,0],"omelette":[160,11,2,12,0],"scrambled eggs":[200,13,2,15,0],
+  "boiled potato":[130,3,30,0,3],"french fries":[365,4,48,17,4],"corn":[130,5,27,2,4],
+  "pizza slice":[285,12,36,10,2],"pizza":[285,12,36,10,2],"burger":[350,17,33,17,2],"cheeseburger":[420,22,34,23,2],
+  "hot dog":[290,11,24,17,1],"pasta":[400,14,60,10,4],"spaghetti":[420,15,62,11,4],"mac and cheese":[350,13,42,15,2],
+  "grilled cheese sandwich":[300,12,28,16,2],"sandwich":[300,15,35,10,3],"club sandwich":[480,25,40,24,3],
+  "caesar salad":[330,10,12,26,3],"fried chicken":[320,22,12,20,1],"chicken breast":[230,43,0,5,0],
+  "grilled chicken":[230,43,0,5,0],"steak":[480,46,0,32,0],"salmon":[280,34,0,15,0],"sushi roll":[250,9,38,7,3],
+  "ramen":[450,18,58,16,3],"fried rice":[340,10,52,10,3],"noodles":[350,10,55,9,3],"hakka noodles":[380,11,58,11,4],
+  "manchurian":[300,10,35,14,4],"spring roll":[150,4,18,7,2],"momos":[280,12,40,8,3],"dumplings":[280,12,40,8,3],
+  "taco":[210,9,21,10,3],"burrito":[600,25,70,25,8],
+  "oatmeal":[150,5,27,3,4],"cereal with milk":[210,8,38,4,3],"pancakes":[350,8,50,12,2],"waffle":[290,7,40,11,2],
+  "toast":[80,3,14,1,1],"buttered toast":[130,3,14,7,1],"peanut butter toast":[230,8,20,13,3],
+  "croissant":[270,5,31,14,2],"bagel":[280,11,55,2,3],"yogurt":[150,8,17,5,0],"greek yogurt":[120,17,8,2,0],
+  "smoothie":[250,6,50,3,4],"protein shake":[200,30,10,3,1],"coffee":[5,0,1,0,0],"coffee with milk":[60,3,6,3,0],
+  "latte":[150,8,13,8,0],"cappuccino":[110,6,9,6,0],"tea":[2,0,0,0,0],"chai":[120,4,18,4,0],"milk":[120,8,12,5,0],
+  "orange juice":[110,2,26,0,0],"soda":[140,0,39,0,0],"cola":[140,0,39,0,0],"chips":[150,2,15,10,1],
+  "potato chips":[150,2,15,10,1],"popcorn":[110,3,22,1,4],"chocolate bar":[230,3,26,13,2],"cookie":[150,2,20,7,1],
+  "ice cream":[270,5,31,14,1],"donut":[250,3,31,14,1],"muffin":[380,6,55,15,2],"granola bar":[120,3,20,4,2],
+  "nuts":[170,6,6,15,3],"almonds":[160,6,6,14,3],"cheese":[110,7,1,9,0],"dark chocolate":[170,2,13,12,3],
+  "energy drink":[160,0,40,0,0],"beer":[150,2,13,0,0],"wine":[125,0,4,0,0]
+};
+const DB_KEYS = Object.keys(FOOD_DB);
+
+/* ---------- User / auth ---------- */
+let currentUser = null; // {id, name, email, picture}
+const SESSION_KEY = "calTracker_session";
+
+function decodeJwt(token){
+  const part = token.split('.')[1];
+  const b64 = part.replace(/-/g,'+').replace(/_/g,'/');
+  const json = decodeURIComponent(atob(b64).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+  return JSON.parse(json);
+}
+function handleCredential(response){
+  try{
+    const p = decodeJwt(response.credential);
+    setUser({id:"g_"+p.sub, name:p.name||p.email, email:p.email, picture:p.picture||""});
+  }catch(e){ alert("Sign-in failed. Try guest mode or check setup."); }
+}
+function signInGuest(){
+  setUser({id:"guest", name:"Guest", email:"", picture:""});
+}
+function setUser(u){
+  currentUser = u;
+  try{ localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }catch(e){}
+  state = loadState();
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  // user box
+  const ub=document.getElementById('userBox');
+  ub.innerHTML = (u.picture?`<img src="${u.picture}">`:"") + `<span>${escapeHtml(u.name)}</span>`;
+  render();
+}
+function signOut(){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+  if(window.google && GOOGLE_CLIENT_ID) google.accounts.id.disableAutoSelect();
+  currentUser=null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+function initAuth(){
+  // restore session if present
+  let saved=null;
+  try{ saved=JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){}
+  if(saved && saved.id){ setUser(saved); return; }
+
+  const notice=document.getElementById('signinNotice');
+  if(GOOGLE_CLIENT_ID && window.google && google.accounts){
+    google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID, callback:handleCredential});
+    google.accounts.id.renderButton(document.getElementById('gbtn'),
+      {theme:"filled_black", size:"large", text:"signin_with", shape:"pill", width:300});
+  }else{
+    notice.classList.remove('hidden');
+    notice.innerHTML = GOOGLE_CLIENT_ID
+      ? "Google library couldn't load (are you offline, or opening as a <code>file://</code>?). Use guest mode, or serve via a local server."
+      : "Google Sign-In isn't configured yet. Add your Client ID in the file to enable it — see the steps below. You can use guest mode meanwhile.";
+  }
+}
+// GSI loads async; retry until ready
+(function waitForGsi(n){
+  if(currentUser) return;
+  if((window.google && window.google.accounts) || !GOOGLE_CLIENT_ID || n<=0){ initAuth(); }
+  else setTimeout(()=>waitForGsi(n-1), 200);
+})(15);
+
+/* ---------- State (scoped per user) ---------- */
+let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, entries:[]};
+function storeKey(){ return "calorieTracker_v2_" + (currentUser?currentUser.id:"none"); }
+function loadState(){
+  try{
+    const raw=localStorage.getItem(storeKey());
+    if(raw){ const s=JSON.parse(raw); if(!s.goals) s.goals={protein:120,carbs:250,fat:65,fiber:30}; return s; }
+  }catch(e){}
+  return {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, entries:[]};
+}
+function saveState(){
+  try{ localStorage.setItem(storeKey(), JSON.stringify(state)); }catch(e){
+    alert("Could not save (storage may be full from photos). Use Export backup to be safe.");
+  }
+}
+
+/* ---------- Date helpers ---------- */
+function todayStr(){ return localISO(new Date()); }
+function localISO(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0'); }
+function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+":"+String(d.getMinutes()).padStart(2,'0'); }
+function prettyDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
+
+/* ---------- Estimation ---------- */
+function estimateFood(name){
+  const q=name.trim().toLowerCase();
+  if(!q) return null;
+  if(FOOD_DB[q]) return {v:FOOD_DB[q], match:q, exact:true};
+  let best=null;
+  for(const k of DB_KEYS){
+    if(q.includes(k)||k.includes(q)){ const score=Math.min(k.length,q.length); if(!best||score>best.score) best={v:FOOD_DB[k],match:k,score}; }
+  }
+  if(best) return {v:best.v, match:best.match, exact:false};
+  const qWords=q.split(/\s+/);
+  for(const k of DB_KEYS){ if(k.split(/\s+/).some(w=>qWords.includes(w))) return {v:FOOD_DB[k],match:k,exact:false}; }
+  return null;
+}
+function onDishInput(){
+  const name=document.getElementById('dishName').value;
+  const est=estimateFood(name);
+  const estEl=document.getElementById('estimate');
+  if(est){
+    const [cal,p,c,f,fb]=est.v;
+    estEl.textContent = (est.exact?`~${cal} kcal`:`~${cal} kcal (based on "${est.match}")`)+` · P${p} C${c} F${f} Fb${fb}`;
+    fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
+  }else{
+    estEl.textContent = name.trim()? "No match — enter values manually" : "";
+  }
+}
+function fillIfAuto(id,val){ const el=document.getElementById(id); if(!el.dataset.userEdited){ el.value=val; } }
+["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){ this.dataset.userEdited="1"; });
+});
+
+/* datalist */
+(function(){ const dl=document.getElementById('dishList'); DB_KEYS.slice().sort().forEach(k=>{ const o=document.createElement('option'); o.value=k.replace(/\b\w/g,c=>c.toUpperCase()); dl.appendChild(o); }); })();
+
+/* ---------- Photo ---------- */
+let pendingPhoto=null;
+function handlePhoto(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=400, scale=Math.min(1,max/Math.max(img.width,img.height));
+      const c=document.createElement('canvas'); c.width=img.width*scale; c.height=img.height*scale;
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      pendingPhoto=c.toDataURL('image/jpeg',0.7);
+      document.getElementById('preview').innerHTML=`<img src="${pendingPhoto}">`;
+      document.getElementById('dropText').textContent="Photo added — click to change";
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- Add / delete ---------- */
+function numVal(id){ const v=parseInt(document.getElementById(id).value,10); return isNaN(v)?0:Math.max(0,v); }
+function addEntry(){
+  const name=document.getElementById('dishName').value.trim();
+  const cal=parseInt(document.getElementById('calories').value,10);
+  if(!name){ alert("Please enter a dish name."); return; }
+  if(isNaN(cal)||cal<0){ alert("Please enter a valid calorie number."); return; }
+  state.entries.push({
+    id:Date.now()+"_"+Math.random().toString(36).slice(2,6),
+    date:document.getElementById('mealDate').value||todayStr(),
+    time:document.getElementById('mealTime').value||nowTime(),
+    name, calories:cal,
+    protein:numVal('mProtein'), carbs:numVal('mCarbs'), fat:numVal('mFat'), fiber:numVal('mFiber'),
+    photo:pendingPhoto
+  });
+  saveState();
+  // reset
+  ["dishName","calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ const el=document.getElementById(id); el.value=""; delete el.dataset.userEdited; });
+  document.getElementById('estimate').textContent="";
+  document.getElementById('preview').innerHTML="";
+  document.getElementById('dropText').textContent="Click to add a photo of your food";
+  pendingPhoto=null;
+  document.getElementById('mealTime').value=nowTime();
+  document.getElementById('viewDate').value=state.entries[state.entries.length-1].date;
+  render();
+}
+function deleteEntry(id){ state.entries=state.entries.filter(e=>e.id!==id); saveState(); render(); }
+
+/* ---------- Goals ---------- */
+function saveGoal(){
+  const g=parseInt(document.getElementById('goalInput').value,10);
+  if(isNaN(g)||g<=0){ alert("Enter a valid calorie goal."); return; }
+  state.goal=g;
+  state.goals={protein:numVal('goalProtein'),carbs:numVal('goalCarbs'),fat:numVal('goalFat'),fiber:numVal('goalFiber')};
+  saveState(); render();
+}
+
+/* ---------- Date nav ---------- */
+function shiftDay(n){ const cur=document.getElementById('viewDate').value||todayStr(); const [y,m,d]=cur.split('-').map(Number); const dt=new Date(y,m-1,d); dt.setDate(dt.getDate()+n); document.getElementById('viewDate').value=localISO(dt); render(); }
+function goToday(){ document.getElementById('viewDate').value=todayStr(); render(); }
+
+/* ---------- Aggregation ---------- */
+function dayEntries(date){ return state.entries.filter(e=>e.date===date); }
+function totalFor(date){ return dayEntries(date).reduce((s,e)=>s+e.calories,0); }
+function macroTotals(date){ return dayEntries(date).reduce((a,e)=>({p:a.p+(e.protein||0),c:a.c+(e.carbs||0),f:a.f+(e.fat||0),fb:a.fb+(e.fiber||0)}),{p:0,c:0,f:0,fb:0}); }
+
+/* ---------- Render ---------- */
+let chart=null;
+function render(){
+  const viewDate=document.getElementById('viewDate').value||todayStr();
+  document.getElementById('goalPill').textContent=`Goal: ${state.goal} kcal`;
+  document.getElementById('dayGoal').textContent=state.goal;
+  document.getElementById('goalInput').value=state.goal;
+  document.getElementById('goalProtein').value=state.goals.protein;
+  document.getElementById('goalCarbs').value=state.goals.carbs;
+  document.getElementById('goalFat').value=state.goals.fat;
+  document.getElementById('goalFiber').value=state.goals.fiber;
+
+  const total=totalFor(viewDate);
+  document.getElementById('dayTotal').textContent=total;
+  document.getElementById('progressBar').style.width=Math.min(100,Math.round(total/state.goal*100))+"%";
+  document.getElementById('progressWrap').classList.toggle('over', total>state.goal);
+  const rem=state.goal-total;
+  document.getElementById('remaining').textContent = rem>=0? `${rem} kcal remaining` : `${Math.abs(rem)} kcal over goal`;
+
+  // macros
+  const m=macroTotals(viewDate);
+  setMacro('Protein',m.p,state.goals.protein);
+  setMacro('Carbs',m.c,state.goals.carbs);
+  setMacro('Fat',m.f,state.goals.fat);
+  setMacro('Fiber',m.fb,state.goals.fiber);
+
+  // timeline
+  document.getElementById('timelineDate').textContent=prettyDate(viewDate);
+  const tl=document.getElementById('timeline');
+  const list=dayEntries(viewDate).slice().sort((a,b)=>a.time.localeCompare(b.time));
+  tl.innerHTML = list.length===0
+    ? '<li class="empty">No meals logged for this day yet.</li>'
+    : list.map(e=>`<li>
+        <span class="t">${e.time}</span>
+        ${e.photo?`<img class="thumb" src="${e.photo}">`:`<span class="thumb"></span>`}
+        <span class="meta"><div class="name">${escapeHtml(e.name)}</div><div class="macros">P${e.protein||0} · C${e.carbs||0} · F${e.fat||0} · Fb${e.fiber||0} g</div></span>
+        <span class="cal">${e.calories} kcal</span>
+        <button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button>
+      </li>`).join('');
+
+  renderTrends(viewDate);
+  renderWeek();
+}
+function setMacro(name,val,goal){
+  const key=name; document.getElementById('t'+key).textContent=val;
+  document.getElementById('g'+key).textContent=goal;
+  document.getElementById('b'+key).style.width=(goal>0?Math.min(100,Math.round(val/goal*100)):0)+"%";
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function renderTrends(viewDate){
+  const labels=[],data=[];
+  const [y,m,d]=viewDate.split('-').map(Number); const base=new Date(y,m-1,d);
+  for(let i=13;i>=0;i--){ const dt=new Date(base); dt.setDate(dt.getDate()-i); labels.push(dt.toLocaleDateString(undefined,{month:'short',day:'numeric'})); data.push(totalFor(localISO(dt))); }
+  const ctx=document.getElementById('trendChart');
+  if(chart) chart.destroy();
+  chart=new Chart(ctx,{type:'bar',
+    data:{labels,datasets:[
+      {label:'Calories',data,backgroundColor:data.map(v=>v>state.goal?'#f59e0b':'#4ade80'),borderRadius:6,maxBarThickness:34},
+      {label:'Goal',data:new Array(14).fill(state.goal),type:'line',borderColor:'#38bdf8',borderDash:[6,6],pointRadius:0,borderWidth:2}
+    ]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#9aa3b2'}}},
+      scales:{x:{ticks:{color:'#9aa3b2'},grid:{color:'#2a2f3a'}},y:{beginAtZero:true,ticks:{color:'#9aa3b2'},grid:{color:'#2a2f3a'}}}}
+  });
+}
+function renderWeek(){
+  const grid=document.getElementById('weekGrid'); const today=new Date(); let sum=0,cells="";
+  for(let i=6;i>=0;i--){ const dt=new Date(today); dt.setDate(dt.getDate()-i); const t=totalFor(localISO(dt)); sum+=t;
+    cells+=`<div class="d"><div class="dow">${dt.toLocaleDateString(undefined,{weekday:'short'})}</div><div class="v">${t}</div></div>`; }
+  grid.innerHTML=cells;
+  document.getElementById('weekAvg').textContent=Math.round(sum/7);
+}
+
+/* ---------- Export / Import ---------- */
+function exportData(){
+  const payload={user:currentUser?currentUser.email||currentUser.name:"guest", ...state};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download="calorie-backup-"+todayStr()+".json"; a.click(); URL.revokeObjectURL(url);
+}
+function importData(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.entries||!Array.isArray(data.entries)) throw 0;
+      if(confirm("Import "+data.entries.length+" entries into THIS account? Replaces current data (export a backup first if unsure).")){
+        state={goal:data.goal||2000, goals:data.goals||{protein:120,carbs:250,fat:65,fiber:30}, entries:data.entries};
+        saveState(); render(); alert("Imported successfully.");
+      }
+    }catch(err){ alert("Could not read that backup file."); }
+    ev.target.value="";
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- Form init (runs once) ---------- */
+(function formInit(){
+  document.getElementById('mealDate').value=todayStr();
+  document.getElementById('viewDate').value=todayStr();
+  document.getElementById('mealTime').value=nowTime();
+})();
+</script>
+</body>
+</html>
