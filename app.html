@@ -10,31 +10,37 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <style>
   :root{
-    --bg:#0f1115; --panel:#181b22; --panel2:#1f232c; --line:#2a2f3a;
-    --text:#e8eaee; --muted:#9aa3b2; --accent:#4ade80; --accent2:#38bdf8;
+    --bg:#eef5fc; --panel:rgba(255,255,255,.66); --panel2:#eef4fb; --line:#dbe7f3;
+    --text:#0b1220; --muted:#5d6b82; --accent:#06b6d4; --accent2:#2563eb;
     --warn:#f59e0b; --danger:#ef4444;
-    --protein:#f472b6; --carbs:#fbbf24; --fat:#a78bfa; --fiber:#34d399;
-    --radius:14px;
+    --protein:#ec4899; --carbs:#d97706; --fat:#7c3aed; --fiber:#0891b2;
+    --radius:18px;
+    --glass:rgba(255,255,255,.66);
   }
   *{box-sizing:border-box}
-  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:linear-gradient(180deg,#0d0f13,#0f1115); color:var(--text); line-height:1.5;}
-  header{padding:22px 20px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
-  h1{font-size:20px; margin:0; display:flex; align-items:center; gap:10px}
-  h1 .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:
+      radial-gradient(900px 460px at 88% -10%, rgba(34,211,238,.22), transparent 60%),
+      radial-gradient(820px 480px at 2% 4%, rgba(37,99,235,.14), transparent 58%),
+      radial-gradient(700px 560px at 65% 108%, rgba(124,58,237,.12), transparent 60%),
+      linear-gradient(180deg,#f7fbff,#eef5fc); background-attachment:fixed; color:var(--text); line-height:1.5; -webkit-font-smoothing:antialiased;}
+  header{position:sticky; top:0; z-index:30; padding:18px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; background:rgba(255,255,255,.82); backdrop-filter:saturate(180%) blur(12px);}
+  h1{font-size:20px; margin:0; display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-.02em}
+  h1 .dot{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(37,99,235,.5)}
   .wrap{max-width:1100px; margin:0 auto; padding:20px}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
   @media (max-width:820px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px}
+  .card{background:var(--panel); border:1px solid rgba(255,255,255,.7); border-radius:var(--radius); padding:20px; box-shadow:0 16px 40px -22px rgba(8,120,180,.45); backdrop-filter:blur(16px)}
   .card h2{font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 14px}
   label{display:block; font-size:12px; color:var(--muted); margin:0 0 5px}
   input,select,button{font-family:inherit; font-size:14px}
   input[type=text],input[type=number],input[type=time],input[type=date],select{width:100%; padding:10px 12px; background:var(--panel2); border:1px solid var(--line); color:var(--text); border-radius:10px; outline:none;}
-  input:focus,select:focus{border-color:var(--accent2)}
+  input:focus,select:focus{border-color:var(--accent2); box-shadow:0 0 0 3px rgba(37,99,235,.12)}
   .row{display:flex; gap:12px}
   .row > div{flex:1}
-  button{cursor:pointer; border:none; border-radius:10px; padding:11px 16px; font-weight:600; background:var(--accent); color:#06240f; transition:filter .15s;}
-  button:hover{filter:brightness(1.08)}
-  button.ghost{background:var(--panel2); color:var(--text); border:1px solid var(--line)}
+  button{cursor:pointer; border:none; border-radius:10px; padding:11px 16px; font-weight:700; background:linear-gradient(135deg,#22d3ee,#2563eb); color:#fff; box-shadow:0 10px 22px -8px rgba(14,165,233,.7); transition:transform .15s, box-shadow .15s, filter .15s;}
+  button:hover{transform:translateY(-1px); filter:brightness(1.05)}
+  button:disabled{opacity:.45; cursor:not-allowed; box-shadow:none; transform:none}
+  button.ghost{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none}
   button.sm{padding:6px 10px; font-size:12px}
   .field{margin-bottom:13px}
   .uploader{border:1.5px dashed var(--line); border-radius:12px; padding:18px; text-align:center; color:var(--muted); cursor:pointer; transition:border-color .15s; background:var(--panel2);}
@@ -84,11 +90,14 @@
   footer{color:var(--muted); font-size:12px; text-align:center; padding:24px}
   .user{display:flex; align-items:center; gap:8px; font-size:13px}
   .user img{width:28px;height:28px;border-radius:50%}
-  #overlay{position:fixed; inset:0; background:rgba(10,12,16,.92); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px}
-  .signin{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:34px; max-width:430px; width:100%; text-align:center}
+  #overlay{position:fixed; inset:0; background:
+      radial-gradient(800px 400px at 80% 0%, rgba(34,211,238,.18), transparent 60%),
+      radial-gradient(700px 360px at 10% 100%, rgba(124,58,237,.14), transparent 60%),
+      rgba(239,245,252,.96); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px}
+  .signin{background:var(--panel); border:1px solid rgba(255,255,255,.7); border-radius:20px; padding:34px; max-width:430px; width:100%; text-align:center; box-shadow:0 24px 60px -28px rgba(8,120,180,.5); backdrop-filter:blur(18px)}
   .signin h2{font-size:22px; margin:0 0 6px; text-transform:none; letter-spacing:0; color:var(--text)}
   .signin p{color:var(--muted); font-size:14px; margin:0 0 22px}
-  .gbtn{width:100%; background:#fff; color:#1f1f1f; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px}
+  .gbtn{width:100%; background:#fff; color:#1f1f1f; border:1px solid var(--line); box-shadow:0 6px 16px -10px rgba(20,40,80,.4); display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px}
   .gbtn svg{width:18px;height:18px}
   .notice{font-size:12px; color:var(--warn); background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.3); border-radius:10px; padding:10px 12px; margin-bottom:16px; text-align:left}
   .notice a{color:var(--accent2)}
@@ -97,6 +106,15 @@
   code{background:var(--panel2); padding:1px 5px; border-radius:5px; font-size:11px}
   .hidden{display:none !important}
   .syncmsg{font-size:12px;color:var(--muted);margin-top:6px;min-height:14px}
+  .calcgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.calcgrid{grid-template-columns:1fr 1fr}}
+  .calcres{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px}
+  .calcres .big{font-size:30px;font-weight:700;color:var(--accent)}
+  .calcres .brk{font-size:13px;color:var(--muted);margin-top:6px}
+  .timeline .qty{font-size:11px;color:var(--accent2);font-weight:700}
+  .timeline .acts{display:flex;flex-shrink:0}
+  .timeline .edit{background:transparent;color:var(--muted);padding:4px 8px;font-size:14px;line-height:1;width:auto}
+  .timeline .edit:hover{color:var(--accent2)}
 </style>
 </head>
 <body>
@@ -155,11 +173,12 @@
         <div class="est" id="estimate"></div>
       </div>
       <div class="row">
-        <div class="field"><label>Calories (kcal)</label><input type="number" id="calories" placeholder="0" min="0"></div>
+        <div class="field"><label>Calories (kcal) <span style="color:var(--muted)">· per serving</span></label><input type="number" id="calories" placeholder="0" min="0"></div>
+        <div class="field"><label>Servings</label><input type="number" id="qty" value="1" min="0" step="0.25"></div>
         <div class="field"><label>Time</label><input type="time" id="mealTime"></div>
       </div>
       <div class="field">
-        <label>Nutrition (grams) — auto-filled, editable</label>
+        <label>Nutrition (grams, per serving) — auto-filled, editable</label>
         <div class="macroInputs">
           <div><label style="color:var(--protein)">Protein</label><input type="number" id="mProtein" min="0" placeholder="0"></div>
           <div><label style="color:var(--carbs)">Carbs</label><input type="number" id="mCarbs" min="0" placeholder="0"></div>
@@ -168,7 +187,9 @@
         </div>
       </div>
       <div class="field"><label>Date</label><input type="date" id="mealDate"></div>
-      <button onclick="addEntry()" style="width:100%">Add entry</button>
+      <div class="est" id="totalPreview"></div>
+      <button id="addBtn" onclick="addEntry()" style="width:100%">Add entry</button>
+      <button id="cancelEditBtn" class="ghost" onclick="cancelEdit()" style="width:100%;margin-top:8px;display:none">Cancel edit</button>
       <div class="syncmsg" id="syncMsg"></div>
     </div>
 
@@ -189,6 +210,34 @@
         <div class="mstat f"><div class="lbl">Fat</div><div class="v"><span id="tFat">0</span>g</div><div class="g">/ <span id="gFat">65</span>g</div><div class="mbar"><div id="bFat"></div></div></div>
         <div class="mstat fb"><div class="lbl">Fiber</div><div class="v"><span id="tFiber">0</span>g</div><div class="g">/ <span id="gFiber">30</span>g</div><div class="mbar"><div id="bFiber"></div></div></div>
       </div>
+    </div>
+
+    <div class="card full">
+      <h2>Weight-loss calorie target</h2>
+      <div class="calcgrid">
+        <div class="field"><label>Sex</label><select id="wlSex"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div class="field"><label>Age</label><input type="number" id="wlAge" min="10" max="100" placeholder="years"></div>
+        <div class="field"><label>Height (cm)</label><input type="number" id="wlHeight" min="100" max="250" placeholder="cm"></div>
+        <div class="field"><label>Weight (kg)</label><input type="number" id="wlWeight" min="30" max="300" placeholder="kg"></div>
+        <div class="field"><label>Activity level</label><select id="wlActivity">
+          <option value="1.2">Sedentary (little/no exercise)</option>
+          <option value="1.375">Light (1–3 days/week)</option>
+          <option value="1.55" selected>Moderate (3–5 days/week)</option>
+          <option value="1.725">Active (6–7 days/week)</option>
+          <option value="1.9">Very active (hard daily / physical job)</option>
+        </select></div>
+        <div class="field"><label>Goal</label><select id="wlRate">
+          <option value="0">Maintain weight</option>
+          <option value="0.25">Lose 0.25 kg/week (mild)</option>
+          <option value="0.5" selected>Lose 0.5 kg/week (steady)</option>
+          <option value="0.75">Lose 0.75 kg/week (aggressive)</option>
+        </select></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div class="field" style="display:flex;align-items:flex-end"><button class="ghost" onclick="calcTarget()" style="width:100%">Calculate target</button></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button id="applyTargetBtn" onclick="applyTarget()" style="width:100%" disabled>Use as my goals</button></div>
+      </div>
+      <div class="calcres hidden" id="calcRes"></div>
     </div>
 
     <div class="card full">
@@ -287,7 +336,7 @@ let MODE = "local";            // "cloud" | "local"
 let currentUser = null;        // {id, name, email, picture}
 let isGuest = false;
 let auth=null, db=null;
-let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, entries:[]};
+let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, profile:null, entries:[]};
 const SESSION_KEY = "calTracker_guest_session";
 const DEFAULT_GOALS = {protein:120,carbs:250,fat:65,fiber:30};
 
@@ -357,8 +406,8 @@ function signOut(){
 /* ---------- Storage ---------- */
 function localKey(){ return "calorieTracker_v3_"+(currentUser?currentUser.id:"none"); }
 function loadStateLocal(){
-  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, entries:s.entries||[]}; return; } }catch(e){}
-  state={goal:2000, goals:{...DEFAULT_GOALS}, entries:[]};
+  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, entries:s.entries||[]}; return; } }catch(e){}
+  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, entries:[]};
 }
 function saveStateLocal(){ try{ localStorage.setItem(localKey(), JSON.stringify(state)); }catch(e){ alert("Could not save locally (storage full). Use Export to back up."); } }
 
@@ -371,6 +420,7 @@ async function loadState(){
       const md=meta.exists?meta.data():null;
       state.goal=(md&&md.goal)||2000;
       state.goals=(md&&md.goals)||{...DEFAULT_GOALS};
+      state.profile=(md&&md.profile)||null;
       const snap=await uref.collection("entries").get();
       state.entries=snap.docs.map(d=>({id:d.id, ...d.data()}));
       setSync("");
@@ -382,7 +432,7 @@ async function loadState(){
 async function persistGoals(){
   if(MODE==="cloud"){
     setSync("Saving…");
-    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals}, {merge:true}); setSync("Saved ✓"); }
+    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null}, {merge:true}); setSync("Saved ✓"); }
     catch(e){ setSync("Save error: "+e.message); }
   }else saveStateLocal();
 }
@@ -401,6 +451,13 @@ async function persistDeleteEntry(id){
   if(MODE==="cloud"){
     try{ await db.collection("users").doc(currentUser.id).collection("entries").doc(id).delete(); }
     catch(e){ setSync("Delete error: "+e.message); }
+  }else saveStateLocal();
+}
+async function persistUpdateEntry(entry){
+  if(MODE==="cloud" && entry.id && entry.id.indexOf("tmp_")!==0){
+    setSync("Updating…");
+    try{ const {id, ...data}=entry; await db.collection("users").doc(currentUser.id).collection("entries").doc(id).set(data); setSync("Saved ✓"); }
+    catch(e){ setSync("Update error: "+e.message); }
   }else saveStateLocal();
 }
 function setSync(msg){ const el=document.getElementById('syncMsg'); if(el) el.textContent=msg; if(msg==="Saved ✓") setTimeout(()=>{ if(el&&el.textContent==="Saved ✓") el.textContent=""; },1500); }
@@ -426,12 +483,22 @@ function onDishInput(){
   const name=document.getElementById('dishName').value;
   const est=estimateFood(name); const estEl=document.getElementById('estimate');
   if(est){ const [cal,p,c,f,fb]=est.v;
-    estEl.textContent=(est.exact?`~${cal} kcal`:`~${cal} kcal (based on "${est.match}")`)+` · P${p} C${c} F${f} Fb${fb}`;
+    estEl.textContent=(est.exact?`~${cal} kcal`:`~${cal} kcal (based on "${est.match}")`)+` · P${p} C${c} F${f} Fb${fb} (per serving)`;
     fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
   }else{ estEl.textContent=name.trim()?"No match — enter values manually":""; }
+  updateTotalPreview();
 }
 function fillIfAuto(id,val){ const el=document.getElementById(id); if(!el.dataset.userEdited) el.value=val; }
-["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ document.getElementById(id).addEventListener('input',function(){ this.dataset.userEdited="1"; }); });
+function qtyVal(){ const v=parseFloat(document.getElementById('qty').value); return (isNaN(v)||v<=0)?1:v; }
+function updateTotalPreview(){
+  const q=qtyVal();
+  const cal=numVal('calories'), p=numVal('mProtein'), c=numVal('mCarbs'), f=numVal('mFat'), fb=numVal('mFiber');
+  const el=document.getElementById('totalPreview');
+  if(q===1 || (cal<=0 && p+c+f+fb<=0)){ el.textContent=""; return; }
+  el.textContent=`Total for ${q} servings: ${Math.round(cal*q)} kcal · P${Math.round(p*q)} C${Math.round(c*q)} F${Math.round(f*q)} Fb${Math.round(fb*q)} g`;
+}
+["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ document.getElementById(id).addEventListener('input',function(){ this.dataset.userEdited="1"; updateTotalPreview(); }); });
+document.getElementById('qty').addEventListener('input', updateTotalPreview);
 (function(){ const dl=document.getElementById('dishList'); DB_KEYS.slice().sort().forEach(k=>{ const o=document.createElement('option'); o.value=k.replace(/\b\w/g,c=>c.toUpperCase()); dl.appendChild(o); }); })();
 
 /* ---------- Photo ---------- */
@@ -450,33 +517,76 @@ function handlePhoto(ev){
   reader.readAsDataURL(file);
 }
 
-/* ---------- Add / delete ---------- */
+/* ---------- Add / edit / delete ---------- */
 function numVal(id){ const v=parseInt(document.getElementById(id).value,10); return isNaN(v)?0:Math.max(0,v); }
+let editingId=null, editingPhoto=null;
+function clearForm(){
+  ["dishName","calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ const el=document.getElementById(id); el.value=""; delete el.dataset.userEdited; });
+  document.getElementById('qty').value="1";
+  document.getElementById('estimate').textContent="";
+  document.getElementById('totalPreview').textContent="";
+  document.getElementById('preview').innerHTML="";
+  document.getElementById('dropText').textContent="Click to add a photo of your food";
+  pendingPhoto=null; editingId=null; editingPhoto=null;
+  document.getElementById('mealTime').value=nowTime();
+  document.getElementById('addBtn').textContent="Add entry";
+  document.getElementById('cancelEditBtn').style.display="none";
+}
+function cancelEdit(){ clearForm(); }
 async function addEntry(){
   const name=document.getElementById('dishName').value.trim();
   const cal=parseInt(document.getElementById('calories').value,10);
   if(!name){ alert("Please enter a dish name."); return; }
   if(isNaN(cal)||cal<0){ alert("Please enter a valid calorie number."); return; }
-  const entry={ id:"tmp_"+Date.now(),
+  const q=qtyVal(); const per={cal:numVal('calories'),p:numVal('mProtein'),c:numVal('mCarbs'),f:numVal('mFat'),fb:numVal('mFiber')};
+  const r=x=>Math.round(x*q);
+  const entry={ id: editingId || ("tmp_"+Date.now()),
     date:document.getElementById('mealDate').value||todayStr(),
     time:document.getElementById('mealTime').value||nowTime(),
-    name, calories:cal,
-    protein:numVal('mProtein'), carbs:numVal('mCarbs'), fat:numVal('mFat'), fiber:numVal('mFiber'),
-    photo:pendingPhoto||null };
-  state.entries.push(entry);
-  await persistAddEntry(entry);
-  ["dishName","calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ const el=document.getElementById(id); el.value=""; delete el.dataset.userEdited; });
-  document.getElementById('estimate').textContent="";
-  document.getElementById('preview').innerHTML="";
-  document.getElementById('dropText').textContent="Click to add a photo of your food";
-  pendingPhoto=null;
-  document.getElementById('mealTime').value=nowTime();
-  document.getElementById('viewDate').value=entry.date;
+    name, qty:q, per,
+    calories:r(per.cal), protein:r(per.p), carbs:r(per.c), fat:r(per.f), fiber:r(per.fb),
+    photo:(editingId?editingPhoto:null)||pendingPhoto||null };
+  if(editingId){
+    const i=state.entries.findIndex(e=>e.id===editingId);
+    if(i>=0) state.entries[i]=entry;
+    await persistUpdateEntry(entry);
+  }else{
+    state.entries.push(entry);
+    await persistAddEntry(entry);
+  }
+  const goDate=entry.date;
+  clearForm();
+  document.getElementById('viewDate').value=goDate;
   render();
 }
+function editEntry(id){
+  const e=state.entries.find(x=>x.id===id); if(!e) return;
+  const q=e.qty||1;
+  const per=e.per||{cal:Math.round((e.calories||0)/q),p:Math.round((e.protein||0)/q),c:Math.round((e.carbs||0)/q),f:Math.round((e.fat||0)/q),fb:Math.round((e.fiber||0)/q)};
+  editingId=e.id; editingPhoto=e.photo||null;
+  document.getElementById('dishName').value=e.name;
+  document.getElementById('calories').value=per.cal;
+  document.getElementById('mProtein').value=per.p;
+  document.getElementById('mCarbs').value=per.c;
+  document.getElementById('mFat').value=per.f;
+  document.getElementById('mFiber').value=per.fb;
+  ["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ document.getElementById(id).dataset.userEdited="1"; });
+  document.getElementById('qty').value=q;
+  document.getElementById('mealTime').value=e.time;
+  document.getElementById('mealDate').value=e.date;
+  document.getElementById('preview').innerHTML=e.photo?`<img src="${e.photo}">`:"";
+  document.getElementById('dropText').textContent=e.photo?"Photo added — click to change":"Click to add a photo of your food";
+  document.getElementById('estimate').textContent="Editing entry — change values and update.";
+  document.getElementById('addBtn').textContent="Update entry";
+  document.getElementById('cancelEditBtn').style.display="block";
+  updateTotalPreview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 async function deleteEntry(id){
+  if(!confirm("Delete this entry? This can't be undone.")) return;
   state.entries=state.entries.filter(e=>e.id!==id);
   await persistDeleteEntry(id);
+  if(editingId===id) clearForm();
   render();
 }
 
@@ -487,6 +597,52 @@ async function saveGoal(){
   state.goal=g;
   state.goals={protein:numVal('goalProtein'),carbs:numVal('goalCarbs'),fat:numVal('goalFat'),fiber:numVal('goalFiber')};
   await persistGoals(); render();
+}
+
+/* ---------- Weight-loss calorie target (Mifflin-St Jeor) ---------- */
+let lastTarget=null;
+function calcTarget(){
+  const sex=document.getElementById('wlSex').value;
+  const age=parseFloat(document.getElementById('wlAge').value);
+  const h=parseFloat(document.getElementById('wlHeight').value);
+  const w=parseFloat(document.getElementById('wlWeight').value);
+  const act=parseFloat(document.getElementById('wlActivity').value);
+  const rate=parseFloat(document.getElementById('wlRate').value);
+  const res=document.getElementById('calcRes');
+  res.classList.remove('hidden');
+  if(isNaN(age)||isNaN(h)||isNaN(w)||age<=0||h<=0||w<=0){
+    res.innerHTML='<span style="color:var(--warn)">Enter your age, height, and weight to calculate.</span>';
+    document.getElementById('applyTargetBtn').disabled=true; lastTarget=null; return;
+  }
+  const bmr=Math.round(10*w + 6.25*h - 5*age + (sex==='male'?5:-161));
+  const tdee=Math.round(bmr*act);
+  const deficit=Math.round(rate*7700/7);
+  let target=tdee-deficit; const floor=sex==='male'?1500:1200; let warn='';
+  if(target<floor){ target=floor; warn=`<div class="brk" style="color:var(--warn)">Capped at a safe minimum of ${floor} kcal/day — consider a gentler goal.</div>`; }
+  const protein=Math.round(1.8*w);
+  const fat=Math.round(target*0.25/9);
+  const carbs=Math.max(0,Math.round((target - protein*4 - fat*9)/4));
+  const fiber=Math.round(target/1000*14);
+  lastTarget={goal:target, goals:{protein,carbs,fat,fiber}, profile:{sex,age,h,w,act,rate}};
+  res.innerHTML=`<div class="big">${target} kcal / day</div>
+    <div class="brk">BMR ${bmr} kcal · maintenance ${tdee} kcal · ${rate>0?('cutting −'+deficit+' kcal/day'):'maintenance'}</div>
+    <div class="brk">Suggested macros — Protein ${protein}g · Carbs ${carbs}g · Fat ${fat}g · Fiber ${fiber}g</div>${warn}`;
+  document.getElementById('applyTargetBtn').disabled=false;
+}
+async function applyTarget(){
+  if(!lastTarget){ calcTarget(); if(!lastTarget) return; }
+  state.goal=lastTarget.goal; state.goals={...lastTarget.goals}; state.profile=lastTarget.profile;
+  await persistGoals(); render(); setSync("Saved ✓");
+}
+function fillProfileInputs(){
+  const p=state.profile; if(!p) return;
+  if(document.getElementById('wlAge').value) return; // don't clobber in-progress typing
+  document.getElementById('wlSex').value=p.sex;
+  document.getElementById('wlAge').value=p.age;
+  document.getElementById('wlHeight').value=p.h;
+  document.getElementById('wlWeight').value=p.w;
+  document.getElementById('wlActivity').value=String(p.act);
+  document.getElementById('wlRate').value=String(p.rate);
 }
 
 /* ---------- Date nav ---------- */
@@ -529,11 +685,11 @@ function render(){
   tl.innerHTML=list.length===0?'<li class="empty">No meals logged for this day yet.</li>':list.map(e=>`<li>
       <span class="t">${e.time}</span>
       ${e.photo?`<img class="thumb" src="${e.photo}">`:`<span class="thumb"></span>`}
-      <span class="meta"><div class="name">${escapeHtml(e.name)}</div><div class="macros">P${e.protein||0} · C${e.carbs||0} · F${e.fat||0} · Fb${e.fiber||0} g</div></span>
+      <span class="meta"><div class="name">${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros">P${e.protein||0} · C${e.carbs||0} · F${e.fat||0} · Fb${e.fiber||0} g</div></span>
       <span class="cal">${e.calories} kcal</span>
-      <button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></li>`).join('');
+      <span class="acts"><button class="edit" title="Edit" onclick="editEntry('${e.id}')">✎</button><button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></span></li>`).join('');
 
-  renderTrends(viewDate); renderWeek();
+  renderTrends(viewDate); renderWeek(); fillProfileInputs();
 }
 function setMacro(name,val,goal){ document.getElementById('t'+name).textContent=val; document.getElementById('g'+name).textContent=goal; document.getElementById('b'+name).style.width=(goal>0?Math.min(100,Math.round(val/goal*100)):0)+"%"; }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -543,9 +699,9 @@ function renderTrends(viewDate){
   for(let i=13;i>=0;i--){ const dt=new Date(base); dt.setDate(dt.getDate()-i); labels.push(dt.toLocaleDateString(undefined,{month:'short',day:'numeric'})); data.push(totalFor(localISO(dt))); }
   const ctx=document.getElementById('trendChart'); if(chart) chart.destroy();
   chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[
-      {label:'Calories',data,backgroundColor:data.map(v=>v>state.goal?'#f59e0b':'#4ade80'),borderRadius:6,maxBarThickness:34},
-      {label:'Goal',data:new Array(14).fill(state.goal),type:'line',borderColor:'#38bdf8',borderDash:[6,6],pointRadius:0,borderWidth:2}]},
-    options:{responsive:true,plugins:{legend:{labels:{color:'#9aa3b2'}}},scales:{x:{ticks:{color:'#9aa3b2'},grid:{color:'#2a2f3a'}},y:{beginAtZero:true,ticks:{color:'#9aa3b2'},grid:{color:'#2a2f3a'}}}}});
+      {label:'Calories',data,backgroundColor:data.map(v=>v>state.goal?'#f59e0b':'#06b6d4'),borderRadius:6,maxBarThickness:34},
+      {label:'Goal',data:new Array(14).fill(state.goal),type:'line',borderColor:'#2563eb',borderDash:[6,6],pointRadius:0,borderWidth:2}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#69748c'}}},scales:{x:{ticks:{color:'#69748c'},grid:{color:'#e3e9f2'}},y:{beginAtZero:true,ticks:{color:'#69748c'},grid:{color:'#e3e9f2'}}}}});
 }
 function renderWeek(){
   const grid=document.getElementById('weekGrid'); const today=new Date(); let sum=0,cells="";
