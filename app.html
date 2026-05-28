@@ -73,7 +73,16 @@
   .timeline .t{font-variant-numeric:tabular-nums; color:var(--accent2); font-weight:600; width:64px; flex-shrink:0}
   .timeline .meta{flex:1; min-width:0}
   .timeline .name{font-weight:500}
-  .timeline .macros{font-size:11px; color:var(--muted)}
+  .timeline .macros{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-top:8px}
+  .timeline .macros .m{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:6px 9px}
+  .timeline .macros .m .l{font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600}
+  .timeline .macros .m .v{font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:1px}
+  .timeline .macros .m.cal .v{color:var(--accent)}
+  .timeline .macros .m.p .v{color:var(--protein)}
+  .timeline .macros .m.c .v{color:var(--carbs)}
+  .timeline .macros .m.f .v{color:var(--fat)}
+  .timeline .macros .m.fb .v{color:var(--fiber)}
+  @media(max-width:520px){ .timeline .macros{grid-template-columns:repeat(5,1fr)} .timeline .macros .m{padding:5px 5px} .timeline .macros .m .v{font-size:12px} .timeline .macros .m .l{font-size:8px} }
   .timeline .cal{color:var(--muted); font-variant-numeric:tabular-nums; flex-shrink:0}
   .timeline .del{background:transparent;color:var(--muted);padding:4px 8px;font-size:16px;line-height:1; width:auto}
   .timeline .del:hover{color:var(--danger)}
@@ -714,8 +723,7 @@ function render(){
   const list=dayEntries(viewDate).slice().sort((a,b)=>a.time.localeCompare(b.time));
   tl.innerHTML=list.length===0?'<li class="empty">No meals logged for this day yet.</li>':list.map(e=>`<li>
       <span class="t">${e.time}</span>
-      <span class="meta"><div class="name">${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros">P${e.protein||0} · C${e.carbs||0} · F${e.fat||0} · Fb${e.fiber||0} g</div></span>
-      <span class="cal">${e.calories} kcal</span>
+      <span class="meta"><div class="name">${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros"><div class="m cal"><div class="l">Calories</div><div class="v">${e.calories||0}</div></div><div class="m p"><div class="l">Protein</div><div class="v">${e.protein||0}g</div></div><div class="m c"><div class="l">Carbs</div><div class="v">${e.carbs||0}g</div></div><div class="m f"><div class="l">Fat</div><div class="v">${e.fat||0}g</div></div><div class="m fb"><div class="l">Fiber</div><div class="v">${e.fiber||0}g</div></div></div></span>
       <span class="acts"><button class="edit" title="Edit" onclick="editEntry('${e.id}')">✎</button><button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></span></li>`).join('');
 
   renderTrends(viewDate); renderWeek(); fillProfileInputs();
