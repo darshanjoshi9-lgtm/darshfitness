@@ -467,8 +467,16 @@ function prettyDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(
 /* ---------- Estimation ---------- */
 /* AI-powered nutrition estimate via Cloudflare Worker (Gemini Flash) */
 const AI_NUTRITION_URL = "https://billowing-water-d051darshfitness.darshanjoshi9.workers.dev";
+const NUTRI_CACHE_KEY = "ai_nutrition_cache_v1";
+const NUTRI_DEBOUNCE_MS = 900;
+let nutriCache = {};
+try{ nutriCache = JSON.parse(localStorage.getItem(NUTRI_CACHE_KEY)||"{}") || {}; }catch(e){ nutriCache = {}; }
+function cacheKey(q){ return q.trim().toLowerCase().replace(/\s+/g,' '); }
+function saveNutriCache(){ try{ localStorage.setItem(NUTRI_CACHE_KEY, JSON.stringify(nutriCache)); }catch(e){} }
 let estimateAbort=null, lookupTimer=null, lastQuery="";
 async function fetchAI(query){
+  const key = cacheKey(query);
+  if(nutriCache[key]) return Object.assign({fromCache:true}, nutriCache[key]);
   if(estimateAbort) estimateAbort.abort();
   estimateAbort = new AbortController();
   const res=await fetch(AI_NUTRITION_URL,{
@@ -478,22 +486,39 @@ async function fetchAI(query){
     signal:estimateAbort.signal
   });
   const data=await res.json().catch(()=>null);
-  if(!res.ok) throw new Error((data&&data.error)||("API "+res.status));
+  if(!res.ok){
+    const blob = JSON.stringify(data||"");
+    if(/RESOURCE_EXHAUSTED|quota|"code":\s*429/i.test(blob)) throw new Error("rate limit — try again in a few seconds");
+    throw new Error((data&&data.error)||("API "+res.status));
+  }
   if(!data || data.kcal==null) return null;
   const r=x=>Math.round(Number(x)||0);
-  return {
+  const out = {
     item:data.item||query,
     unit:data.unit_description||"1 serving",
     confidence:data.confidence||"medium",
     notes:data.notes||"",
     v:[r(data.kcal), r(data.protein_g), r(data.carbs_g), r(data.fat_g), r(data.fiber_g)]
   };
+  nutriCache[key] = out;
+  saveNutriCache();
+  return out;
 }
 function onDishInput(){
   const name=document.getElementById('dishName').value;
   const estEl=document.getElementById('estimate');
   if(lookupTimer) clearTimeout(lookupTimer);
   if(!name.trim()){ estEl.textContent=""; updateTotalPreview(); return; }
+  // If we already have a cached result, show it immediately (no API call, no wait)
+  const cached = nutriCache[cacheKey(name)];
+  if(cached){
+    const [cal,p,c,f,fb]=cached.v;
+    const conf=cached.confidence==='low'?' <span style="color:var(--warn)">· low confidence — double-check</span>':'';
+    estEl.innerHTML=`<b>${escapeHtml(cached.item)}</b> · ${escapeHtml(cached.unit)} · ${cal} kcal · P${p} C${c} F${f} Fb${fb} g${conf} <span style="color:var(--muted)">· cached</span>${cached.notes?` <br><span style="color:var(--muted)">${escapeHtml(cached.notes)}</span>`:''}`;
+    fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
+    updateTotalPreview();
+    return;
+  }
   estEl.innerHTML='<span style="opacity:.7">Looking up with AI…</span>';
   lastQuery=name;
   lookupTimer=setTimeout(async ()=>{
@@ -513,7 +538,7 @@ function onDishInput(){
       estEl.innerHTML=`<span style="color:var(--warn)">AI lookup failed (${escapeHtml(e.message||'error')}) — enter values manually</span>`;
     }
     updateTotalPreview();
-  }, 400);
+  }, NUTRI_DEBOUNCE_MS);
 }
 function fillIfAuto(id,val){ const el=document.getElementById(id); if(!el.dataset.userEdited) el.value=val; }
 function qtyVal(){ const v=parseFloat(document.getElementById('qty').value); return (isNaN(v)||v<=0)?1:v; }
