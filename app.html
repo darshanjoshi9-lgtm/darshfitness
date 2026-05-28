@@ -168,17 +168,16 @@
       </div>
       <div class="field">
         <label>Dish name</label>
-        <input type="text" id="dishName" placeholder="e.g. Paneer butter masala, Chicken biryani, Banana" oninput="onDishInput()" list="dishList">
-        <datalist id="dishList"></datalist>
+        <input type="text" id="dishName" placeholder="Type anything you ate — free text" oninput="onDishInput()" autocomplete="off">
         <div class="est" id="estimate"></div>
       </div>
       <div class="row">
-        <div class="field"><label>Calories (kcal) <span style="color:var(--muted)">· per serving</span></label><input type="number" id="calories" placeholder="0" min="0"></div>
-        <div class="field"><label>Servings</label><input type="number" id="qty" value="1" min="0" step="0.25"></div>
+        <div class="field"><label>Calories (kcal) <span style="color:var(--muted)">· base amount</span></label><input type="number" id="calories" placeholder="0" min="0"></div>
+        <div class="field"><label>Servings / portions <span style="color:var(--muted)">· multiplier</span></label><input type="number" id="qty" value="1" min="0" step="0.1"></div>
         <div class="field"><label>Time</label><input type="time" id="mealTime"></div>
       </div>
       <div class="field">
-        <label>Nutrition (grams, per serving) — auto-filled, editable</label>
+        <label>Nutrition (grams) — auto-filled, editable</label>
         <div class="macroInputs">
           <div><label style="color:var(--protein)">Protein</label><input type="number" id="mProtein" min="0" placeholder="0"></div>
           <div><label style="color:var(--carbs)">Carbs</label><input type="number" id="mCarbs" min="0" placeholder="0"></div>
@@ -469,24 +468,48 @@ function nowTime(){ const d=new Date(); return String(d.getHours()).padStart(2,'
 function prettyDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
 
 /* ---------- Estimation ---------- */
-function estimateFood(name){
-  const q=name.trim().toLowerCase(); if(!q) return null;
-  if(FOOD_DB[q]) return {v:FOOD_DB[q], match:q, exact:true};
-  let best=null;
-  for(const k of DB_KEYS){ if(q.includes(k)||k.includes(q)){ const score=Math.min(k.length,q.length); if(!best||score>best.score) best={v:FOOD_DB[k],match:k,score}; } }
-  if(best) return {v:best.v, match:best.match, exact:false};
-  const qWords=q.split(/\s+/);
-  for(const k of DB_KEYS){ if(k.split(/\s+/).some(w=>qWords.includes(w))) return {v:FOOD_DB[k],match:k,exact:false}; }
-  return null;
+/* Live nutrition lookup via OpenFoodFacts (no API key, per 100g values) */
+let estimateAbort=null, lookupTimer=null, lastQuery="";
+async function fetchOFF(query){
+  if(estimateAbort) estimateAbort.abort();
+  estimateAbort = new AbortController();
+  const url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,brands,nutriments`;
+  const res=await fetch(url, {signal: estimateAbort.signal});
+  if(!res.ok) throw new Error("API "+res.status);
+  const data=await res.json();
+  const products=(data.products||[]).filter(p=>p&&p.nutriments&&(p.nutriments['energy-kcal_100g']!=null));
+  if(!products.length) return null;
+  const p=products[0]; const n=p.nutriments;
+  const round=x=>Math.round(Number(x)||0);
+  return {
+    v:[round(n['energy-kcal_100g']), round(n.proteins_100g), round(n.carbohydrates_100g), round(n.fat_100g), round(n.fiber_100g)],
+    match:((p.brands?p.brands+' — ':'')+(p.product_name||query)).slice(0,80)
+  };
 }
 function onDishInput(){
   const name=document.getElementById('dishName').value;
-  const est=estimateFood(name); const estEl=document.getElementById('estimate');
-  if(est){ const [cal,p,c,f,fb]=est.v;
-    estEl.textContent=(est.exact?`~${cal} kcal`:`~${cal} kcal (based on "${est.match}")`)+` · P${p} C${c} F${f} Fb${fb} (per serving)`;
-    fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
-  }else{ estEl.textContent=name.trim()?"No match — enter values manually":""; }
-  updateTotalPreview();
+  const estEl=document.getElementById('estimate');
+  if(lookupTimer) clearTimeout(lookupTimer);
+  if(!name.trim()){ estEl.textContent=""; updateTotalPreview(); return; }
+  estEl.textContent="Looking up nutrition…";
+  lastQuery=name;
+  lookupTimer=setTimeout(async ()=>{
+    try{
+      const est=await fetchOFF(name);
+      if(document.getElementById('dishName').value!==lastQuery) return; // stale
+      if(est){
+        const [cal,p,c,f,fb]=est.v;
+        estEl.innerHTML=`<b>${escapeHtml(est.match)}</b> · ${cal} kcal / 100g · P${p} C${c} F${f} Fb${fb} — set <i>Servings</i> to portion in ×100g (e.g. 1.5 = 150g)`;
+        fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
+      }else{
+        estEl.textContent="No match found — enter your own values";
+      }
+    }catch(e){
+      if(e.name==='AbortError') return;
+      estEl.textContent="Lookup failed — enter your own values";
+    }
+    updateTotalPreview();
+  }, 400);
 }
 function fillIfAuto(id,val){ const el=document.getElementById(id); if(!el.dataset.userEdited) el.value=val; }
 function qtyVal(){ const v=parseFloat(document.getElementById('qty').value); return (isNaN(v)||v<=0)?1:v; }
@@ -499,7 +522,6 @@ function updateTotalPreview(){
 }
 ["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ document.getElementById(id).addEventListener('input',function(){ this.dataset.userEdited="1"; updateTotalPreview(); }); });
 document.getElementById('qty').addEventListener('input', updateTotalPreview);
-(function(){ const dl=document.getElementById('dishList'); DB_KEYS.slice().sort().forEach(k=>{ const o=document.createElement('option'); o.value=k.replace(/\b\w/g,c=>c.toUpperCase()); dl.appendChild(o); }); })();
 
 /* ---------- Photo ---------- */
 let pendingPhoto=null;
