@@ -159,9 +159,7 @@
   <div class="toolbar">
     <span class="pill" id="modePill">Local</span>
     <span class="pill" id="goalPill">Goal: 2000 kcal</span>
-    <button class="ghost sm" onclick="exportData()">Export</button>
-    <button class="ghost sm" onclick="document.getElementById('importFile').click()">Import</button>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="ghost sm" onclick="exportData()">Export to Excel</button>
     <span class="user" id="userBox"></span>
     <button class="ghost sm" onclick="signOut()">Sign out</button>
   </div>
@@ -746,29 +744,45 @@ function renderWeek(){
   grid.innerHTML=cells; document.getElementById('weekAvg').textContent=Math.round(sum/7);
 }
 
-/* ---------- Export / Import ---------- */
+/* ---------- Export to Excel-compatible CSV ---------- */
 function exportData(){
-  const payload={user:currentUser?currentUser.email||currentUser.name:"guest", goal:state.goal, goals:state.goals, entries:state.entries};
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download="calorie-backup-"+todayStr()+".json"; a.click(); URL.revokeObjectURL(url);
-}
-function importData(ev){
-  const file=ev.target.files[0]; if(!file) return; const reader=new FileReader();
-  reader.onload=async e=>{
-    try{
-      const data=JSON.parse(e.target.result);
-      if(!data.entries||!Array.isArray(data.entries)) throw 0;
-      if(confirm("Import "+data.entries.length+" entries into THIS account? This adds them to your current data.")){
-        state.goal=data.goal||state.goal; state.goals=data.goals||state.goals;
-        for(const en of data.entries){ const entry={...en, id:"tmp_"+Date.now()+Math.random()}; state.entries.push(entry); if(MODE==="cloud") await persistAddEntry(entry); }
-        if(MODE!=="cloud") saveStateLocal(); else await persistGoals();
-        render(); alert("Imported successfully.");
-      }
-    }catch(err){ alert("Could not read that backup file."); }
-    ev.target.value="";
+  if(!state.entries || !state.entries.length){ alert("No meals to export yet."); return; }
+  const header = ['Date','Time','Dish','Servings','Calories (kcal)','Protein (g)','Carbs (g)','Fat (g)','Fiber (g)'];
+  const sorted = state.entries.slice().sort((a,b)=>{
+    const ad=(a.date||'')+'T'+(a.time||''); const bd=(b.date||'')+'T'+(b.time||'');
+    return ad.localeCompare(bd);
+  });
+  const csvEscape = v => {
+    const s = (v==null ? '' : String(v));
+    return /[",\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
   };
-  reader.readAsText(file);
+  const rows = [header];
+  for(const e of sorted){
+    rows.push([
+      e.date||'', e.time||'', e.name||'',
+      e.qty||1,
+      e.calories||0, e.protein||0, e.carbs||0, e.fat||0, e.fiber||0
+    ]);
+  }
+  // Summary section at the bottom
+  const totCal = sorted.reduce((s,e)=>s+(e.calories||0),0);
+  const totP = sorted.reduce((s,e)=>s+(e.protein||0),0);
+  const totC = sorted.reduce((s,e)=>s+(e.carbs||0),0);
+  const totF = sorted.reduce((s,e)=>s+(e.fat||0),0);
+  const totFb = sorted.reduce((s,e)=>s+(e.fiber||0),0);
+  rows.push([]);
+  rows.push(['TOTAL','','','',totCal,totP,totC,totF,totFb]);
+  rows.push(['Daily goal','','','',state.goal,state.goals.protein,state.goals.carbs,state.goals.fat,state.goals.fiber]);
+
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  // UTF-8 BOM so Excel reads ₹, ° and similar characters correctly
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "darsh-fitness-"+todayStr()+".csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 /* ---------- Init ---------- */
