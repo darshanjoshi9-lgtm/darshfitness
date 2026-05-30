@@ -225,7 +225,7 @@
   <div class="wrap trust-row">
     <span class="chip">⚡ <b>Log a meal in</b> ~5 seconds</span>
     <span class="chip">🍛 <b>300+ dishes</b>, Indian & global</span>
-    <span class="chip">👥 <b id="userCount">—</b> people tracking</span>
+    <span class="chip">👥 <b id="userCount">—</b> <span id="userLabel">people tracking</span></span>
     <span class="chip">🔒 <b>Zero ads,</b> zero data selling</span>
   </div>
 </div>
@@ -390,7 +390,12 @@
     .then(r=>r.ok?r.json():null)
     .then(d=>{
       const el=document.getElementById('userCount');
-      if(el && d && typeof d.total_users==='number') el.textContent = d.total_users.toLocaleString();
+      const lbl=document.getElementById('userLabel');
+      if(el && d && typeof d.total_users==='number'){
+        const n = d.total_users;
+        el.textContent = n.toLocaleString();
+        if(lbl) lbl.textContent = (n === 1) ? 'person tracking' : 'people tracking';
+      }
     })
     .catch(()=>{});
 })();
