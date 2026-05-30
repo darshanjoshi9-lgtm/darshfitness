@@ -774,6 +774,15 @@ function importData(ev){
 /* ---------- Init ---------- */
 (function formInit(){ document.getElementById('mealDate').value=todayStr(); document.getElementById('viewDate').value=todayStr(); document.getElementById('mealTime').value=nowTime(); })();
 window.addEventListener('load', boot);
+
+/* ---------- Anonymous visit counter (one ping per browser, ever) ---------- */
+(function trackVisit(){
+  try{
+    if(localStorage.getItem('df_visited_v1')) return;
+    localStorage.setItem('df_visited_v1','1');
+    fetch(AI_NUTRITION_URL.replace(/\/$/,'')+'/visit',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>{});
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

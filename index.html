@@ -225,7 +225,7 @@
   <div class="wrap trust-row">
     <span class="chip">⚡ <b>Log a meal in</b> ~5 seconds</span>
     <span class="chip">🍛 <b>300+ dishes</b>, Indian & global</span>
-    <span class="chip">📊 <b>4 macros</b> tracked, not just calories</span>
+    <span class="chip">👥 <b id="userCount">—</b> people tracking</span>
     <span class="chip">🔒 <b>Zero ads,</b> zero data selling</span>
   </div>
 </div>
@@ -382,6 +382,19 @@
     <div><a href="app.html" style="color:var(--green); font-weight:700">Open the tracker →</a></div>
   </div>
 </footer>
+
+<script>
+/* Fetch the live user count from the Cloudflare Worker and display it in the trust bar */
+(function(){
+  fetch('https://billowing-water-d051darshfitness.darshanjoshi9.workers.dev/stats')
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{
+      const el=document.getElementById('userCount');
+      if(el && d && typeof d.total_users==='number') el.textContent = d.total_users.toLocaleString();
+    })
+    .catch(()=>{});
+})();
+</script>
 
 </body>
 </html>
