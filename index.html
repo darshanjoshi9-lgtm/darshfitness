@@ -384,20 +384,31 @@
 </footer>
 
 <script>
-/* Fetch the live user count from the Cloudflare Worker and display it in the trust bar */
+/* Count this browser's visit (once ever) and display the live user count from the Cloudflare Worker */
 (function(){
-  fetch('https://billowing-water-d051darshfitness.darshanjoshi9.workers.dev/stats')
-    .then(r=>r.ok?r.json():null)
-    .then(d=>{
-      const el=document.getElementById('userCount');
-      const lbl=document.getElementById('userLabel');
-      if(el && d && typeof d.total_users==='number'){
-        const n = d.total_users;
-        el.textContent = n.toLocaleString();
-        if(lbl) lbl.textContent = (n === 1) ? 'person tracking' : 'people tracking';
-      }
-    })
-    .catch(()=>{});
+  const WORKER = 'https://billowing-water-d051darshfitness.darshanjoshi9.workers.dev';
+  const updateUI = (n) => {
+    const el = document.getElementById('userCount');
+    const lbl = document.getElementById('userLabel');
+    if(el && typeof n === 'number'){
+      el.textContent = n.toLocaleString();
+      if(lbl) lbl.textContent = (n === 1) ? 'person tracking' : 'people tracking';
+    }
+  };
+  let visited = false;
+  try{ visited = !!localStorage.getItem('df_visited_v1'); }catch(e){}
+  if(!visited){
+    try{ localStorage.setItem('df_visited_v1','1'); }catch(e){}
+    fetch(WORKER+'/visit',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(r=>r.ok?r.json():null)
+      .then(d=>{ if(d && typeof d.total_users === 'number') updateUI(d.total_users); })
+      .catch(()=>{});
+  } else {
+    fetch(WORKER+'/stats')
+      .then(r=>r.ok?r.json():null)
+      .then(d=>{ if(d && typeof d.total_users === 'number') updateUI(d.total_users); })
+      .catch(()=>{});
+  }
 })();
 </script>
 
