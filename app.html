@@ -13,7 +13,8 @@
     --bg:#eef5fc; --panel:rgba(255,255,255,.66); --panel2:#eef4fb; --line:#dbe7f3;
     --text:#0b1220; --muted:#5d6b82; --accent:#06b6d4; --accent2:#2563eb;
     --warn:#f59e0b; --danger:#ef4444;
-    --protein:#ec4899; --carbs:#d97706; --fat:#7c3aed; --fiber:#0891b2;
+    --protein:#ec4899; --carbs:#d97706; --fat:#7c3aed; --fiber:#0891b2; --sugar:#f43f5e;
+    --sodium:#0ea5e9; --iron:#b45309; --calcium:#64748b; --vitc:#84cc16; --vitd:#eab308; --potassium:#14b8a6;
     --radius:18px;
     --glass:rgba(255,255,255,.66);
   }
@@ -48,7 +49,8 @@
   button.sm{padding:6px 10px; font-size:12px}
   .field{margin-bottom:13px}
   .est{font-size:12px; color:var(--accent); margin-top:6px; min-height:16px}
-  .macroInputs{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+  .macroInputs{display:grid; grid-template-columns:repeat(5,1fr); gap:10px}
+  @media(max-width:520px){ .macroInputs{grid-template-columns:repeat(3,1fr)} }
   .bigstat{display:flex; align-items:baseline; gap:10px; margin-bottom:6px}
   .bigstat .num{font-size:42px; font-weight:700}
   .bigstat .unit{color:var(--muted)}
@@ -56,7 +58,8 @@
   .progress > div{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0; transition:width .4s}
   .progress.over > div{background:linear-gradient(90deg,var(--warn),var(--danger))}
   .sub{font-size:13px; color:var(--muted)}
-  .macroStats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px}
+  .macroStats{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:16px}
+  @media(max-width:520px){ .macroStats{grid-template-columns:repeat(3,1fr)} }
   .mstat{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px}
   .mstat .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
   .mstat .v{font-size:20px; font-weight:700; font-variant-numeric:tabular-nums}
@@ -67,13 +70,24 @@
   .mstat.c .mbar>div{background:var(--carbs)} .mstat.c .v{color:var(--carbs)}
   .mstat.f .mbar>div{background:var(--fat)} .mstat.f .v{color:var(--fat)}
   .mstat.fb .mbar>div{background:var(--fiber)} .mstat.fb .v{color:var(--fiber)}
+  .mstat.sg .mbar>div{background:var(--sugar)} .mstat.sg .v{color:var(--sugar)}
+  .mstat.so .mbar>div{background:var(--sodium)} .mstat.so .v{color:var(--sodium)}
+  .mstat.fe .mbar>div{background:var(--iron)} .mstat.fe .v{color:var(--iron)}
+  .mstat.ca .mbar>div{background:var(--calcium)} .mstat.ca .v{color:var(--calcium)}
+  .mstat.vc .mbar>div{background:var(--vitc)} .mstat.vc .v{color:var(--vitc)}
+  .mstat.vd .mbar>div{background:var(--vitd)} .mstat.vd .v{color:var(--vitd)}
+  .mstat.k .mbar>div{background:var(--potassium)} .mstat.k .v{color:var(--potassium)}
+  .microGrid{display:grid; grid-template-columns:repeat(6,1fr); gap:10px}
+  @media(max-width:680px){ .microGrid{grid-template-columns:repeat(3,1fr)} }
+  @media(max-width:380px){ .microGrid{grid-template-columns:repeat(2,1fr)} }
+  .microcaption{font-size:12px;color:var(--muted);margin-top:-4px;margin-bottom:10px}
   .timeline{list-style:none; padding:0; margin:0}
   .timeline li{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line)}
   .timeline li:last-child{border-bottom:none}
   .timeline .t{font-variant-numeric:tabular-nums; color:var(--accent2); font-weight:600; width:64px; flex-shrink:0}
   .timeline .meta{flex:1; min-width:0}
   .timeline .name{font-weight:500}
-  .timeline .macros{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-top:8px}
+  .timeline .macros{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; margin-top:8px}
   .timeline .macros .m{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:6px 9px}
   .timeline .macros .m .l{font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600}
   .timeline .macros .m .v{font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:1px}
@@ -82,6 +96,7 @@
   .timeline .macros .m.c .v{color:var(--carbs)}
   .timeline .macros .m.f .v{color:var(--fat)}
   .timeline .macros .m.fb .v{color:var(--fiber)}
+  .timeline .macros .m.sg .v{color:var(--sugar)}
   @media(max-width:520px){ .timeline .macros{grid-template-columns:repeat(5,1fr)} .timeline .macros .m{padding:5px 5px} .timeline .macros .m .v{font-size:12px} .timeline .macros .m .l{font-size:8px} }
   .timeline .cal{color:var(--muted); font-variant-numeric:tabular-nums; flex-shrink:0}
   .timeline .del{background:transparent;color:var(--muted);padding:4px 8px;font-size:16px;line-height:1; width:auto}
@@ -187,6 +202,7 @@
           <div><label style="color:var(--carbs)">Carbs</label><input type="number" id="mCarbs" min="0" placeholder="0"></div>
           <div><label style="color:var(--fat)">Fat</label><input type="number" id="mFat" min="0" placeholder="0"></div>
           <div><label style="color:var(--fiber)">Fiber</label><input type="number" id="mFiber" min="0" placeholder="0"></div>
+          <div><label style="color:var(--sugar)">Sugar</label><input type="number" id="mSugar" min="0" placeholder="0"></div>
         </div>
       </div>
       <div class="field"><label>Date</label><input type="date" id="mealDate"></div>
@@ -212,6 +228,7 @@
         <div class="mstat c"><div class="lbl">Carbs</div><div class="v"><span id="tCarbs">0</span>g</div><div class="g">/ <span id="gCarbs">250</span>g</div><div class="mbar"><div id="bCarbs"></div></div></div>
         <div class="mstat f"><div class="lbl">Fat</div><div class="v"><span id="tFat">0</span>g</div><div class="g">/ <span id="gFat">65</span>g</div><div class="mbar"><div id="bFat"></div></div></div>
         <div class="mstat fb"><div class="lbl">Fiber</div><div class="v"><span id="tFiber">0</span>g</div><div class="g">/ <span id="gFiber">30</span>g</div><div class="mbar"><div id="bFiber"></div></div></div>
+        <div class="mstat sg"><div class="lbl">Sugar</div><div class="v"><span id="tSugar">0</span>g</div><div class="g">/ <span id="gSugar">36</span>g</div><div class="mbar"><div id="bSugar"></div></div></div>
       </div>
     </div>
 
@@ -251,6 +268,7 @@
         <div class="field"><label>Carbs (g)</label><input type="number" id="goalCarbs" min="0"></div>
         <div class="field"><label>Fat (g)</label><input type="number" id="goalFat" min="0"></div>
         <div class="field"><label>Fiber (g)</label><input type="number" id="goalFiber" min="0"></div>
+        <div class="field"><label>Sugar (g)</label><input type="number" id="goalSugar" min="0"></div>
         <div class="field" style="display:flex;align-items:flex-end"><button class="ghost" onclick="saveGoal()" style="width:100%">Save goals</button></div>
       </div>
     </div>
@@ -341,7 +359,7 @@ let isGuest = false;
 let auth=null, db=null;
 let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, profile:null, entries:[]};
 const SESSION_KEY = "calTracker_guest_session";
-const DEFAULT_GOALS = {protein:120,carbs:250,fat:65,fiber:30};
+const DEFAULT_GOALS = {protein:120,carbs:250,fat:65,fiber:30,sugar:36};
 
 /* ---------- Firebase init / auth ---------- */
 function boot(){
@@ -505,7 +523,7 @@ async function fetchAI(query){
     unit:data.unit_description||"1 serving",
     confidence:data.confidence||"medium",
     notes:data.notes||"",
-    v:[r(data.kcal), r(data.protein_g), r(data.carbs_g), r(data.fat_g), r(data.fiber_g)]
+    v:[r(data.kcal), r(data.protein_g), r(data.carbs_g), r(data.fat_g), r(data.fiber_g), r(data.sugar_g)]
   };
   nutriCache[key] = out;
   saveNutriCache();
@@ -519,10 +537,10 @@ function onDishInput(){
   // If we already have a cached result, show it immediately (no API call, no wait)
   const cached = nutriCache[cacheKey(name)];
   if(cached){
-    const [cal,p,c,f,fb]=cached.v;
+    const [cal,p,c,f,fb,sg]=cached.v;
     const conf=cached.confidence==='low'?' <span style="color:var(--warn)">· low confidence — double-check</span>':'';
-    estEl.innerHTML=`<b>${escapeHtml(cached.item)}</b> · ${escapeHtml(cached.unit)} · ${cal} kcal · P${p} C${c} F${f} Fb${fb} g${conf} <span style="color:var(--muted)">· cached</span>${cached.notes?` <br><span style="color:var(--muted)">${escapeHtml(cached.notes)}</span>`:''}`;
-    fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
+    estEl.innerHTML=`<b>${escapeHtml(cached.item)}</b> · ${escapeHtml(cached.unit)} · ${cal} kcal · P${p} C${c} F${f} Fb${fb} Sg${sg||0} g${conf} <span style="color:var(--muted)">· cached</span>${cached.notes?` <br><span style="color:var(--muted)">${escapeHtml(cached.notes)}</span>`:''}`;
+    fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb); fillIfAuto('mSugar',sg||0);
     updateTotalPreview();
     return;
   }
@@ -533,10 +551,10 @@ function onDishInput(){
       const est=await fetchAI(name);
       if(document.getElementById('dishName').value!==lastQuery) return; // stale
       if(est){
-        const [cal,p,c,f,fb]=est.v;
+        const [cal,p,c,f,fb,sg]=est.v;
         const conf=est.confidence==='low'?' <span style="color:var(--warn)">· low confidence — double-check</span>':'';
-        estEl.innerHTML=`<b>${escapeHtml(est.item)}</b> · ${escapeHtml(est.unit)} · ${cal} kcal · P${p} C${c} F${f} Fb${fb} g${conf}${est.notes?` <br><span style="color:var(--muted)">${escapeHtml(est.notes)}</span>`:''}`;
-        fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb);
+        estEl.innerHTML=`<b>${escapeHtml(est.item)}</b> · ${escapeHtml(est.unit)} · ${cal} kcal · P${p} C${c} F${f} Fb${fb} Sg${sg||0} g${conf}${est.notes?` <br><span style="color:var(--muted)">${escapeHtml(est.notes)}</span>`:''}`;
+        fillIfAuto('calories',cal); fillIfAuto('mProtein',p); fillIfAuto('mCarbs',c); fillIfAuto('mFat',f); fillIfAuto('mFiber',fb); fillIfAuto('mSugar',sg||0);
       }else{
         estEl.textContent="No estimate — enter your own values";
       }
@@ -551,19 +569,19 @@ function fillIfAuto(id,val){ const el=document.getElementById(id); if(!el.datase
 function qtyVal(){ const v=parseFloat(document.getElementById('qty').value); return (isNaN(v)||v<=0)?1:v; }
 function updateTotalPreview(){
   const q=qtyVal();
-  const cal=numVal('calories'), p=numVal('mProtein'), c=numVal('mCarbs'), f=numVal('mFat'), fb=numVal('mFiber');
+  const cal=numVal('calories'), p=numVal('mProtein'), c=numVal('mCarbs'), f=numVal('mFat'), fb=numVal('mFiber'), sg=numVal('mSugar');
   const el=document.getElementById('totalPreview');
-  if(q===1 || (cal<=0 && p+c+f+fb<=0)){ el.textContent=""; return; }
-  el.textContent=`Total for ${q} servings: ${Math.round(cal*q)} kcal · P${Math.round(p*q)} C${Math.round(c*q)} F${Math.round(f*q)} Fb${Math.round(fb*q)} g`;
+  if(q===1 || (cal<=0 && p+c+f+fb+sg<=0)){ el.textContent=""; return; }
+  el.textContent=`Total for ${q} servings: ${Math.round(cal*q)} kcal · P${Math.round(p*q)} C${Math.round(c*q)} F${Math.round(f*q)} Fb${Math.round(fb*q)} Sg${Math.round(sg*q)} g`;
 }
-["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ document.getElementById(id).addEventListener('input',function(){ this.dataset.userEdited="1"; updateTotalPreview(); }); });
+["calories","mProtein","mCarbs","mFat","mFiber","mSugar"].forEach(id=>{ document.getElementById(id).addEventListener('input',function(){ this.dataset.userEdited="1"; updateTotalPreview(); }); });
 document.getElementById('qty').addEventListener('input', updateTotalPreview);
 
 /* ---------- Add / edit / delete ---------- */
 function numVal(id){ const v=parseInt(document.getElementById(id).value,10); return isNaN(v)?0:Math.max(0,v); }
 let editingId=null;
 function clearForm(){
-  ["dishName","calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ const el=document.getElementById(id); el.value=""; delete el.dataset.userEdited; });
+  ["dishName","calories","mProtein","mCarbs","mFat","mFiber","mSugar"].forEach(id=>{ const el=document.getElementById(id); el.value=""; delete el.dataset.userEdited; });
   document.getElementById('qty').value="1";
   document.getElementById('estimate').textContent="";
   document.getElementById('totalPreview').textContent="";
@@ -578,13 +596,13 @@ async function addEntry(){
   const cal=parseInt(document.getElementById('calories').value,10);
   if(!name){ alert("Please enter a dish name."); return; }
   if(isNaN(cal)||cal<0){ alert("Please enter a valid calorie number."); return; }
-  const q=qtyVal(); const per={cal:numVal('calories'),p:numVal('mProtein'),c:numVal('mCarbs'),f:numVal('mFat'),fb:numVal('mFiber')};
+  const q=qtyVal(); const per={cal:numVal('calories'),p:numVal('mProtein'),c:numVal('mCarbs'),f:numVal('mFat'),fb:numVal('mFiber'),sg:numVal('mSugar')};
   const r=x=>Math.round(x*q);
   const entry={ id: editingId || ("tmp_"+Date.now()),
     date:document.getElementById('mealDate').value||todayStr(),
     time:document.getElementById('mealTime').value||nowTime(),
     name, qty:q, per,
-    calories:r(per.cal), protein:r(per.p), carbs:r(per.c), fat:r(per.f), fiber:r(per.fb) };
+    calories:r(per.cal), protein:r(per.p), carbs:r(per.c), fat:r(per.f), fiber:r(per.fb), sugar:r(per.sg) };
   if(editingId){
     const i=state.entries.findIndex(e=>e.id===editingId);
     if(i>=0) state.entries[i]=entry;
@@ -601,7 +619,7 @@ async function addEntry(){
 function editEntry(id){
   const e=state.entries.find(x=>x.id===id); if(!e) return;
   const q=e.qty||1;
-  const per=e.per||{cal:Math.round((e.calories||0)/q),p:Math.round((e.protein||0)/q),c:Math.round((e.carbs||0)/q),f:Math.round((e.fat||0)/q),fb:Math.round((e.fiber||0)/q)};
+  const per=e.per||{cal:Math.round((e.calories||0)/q),p:Math.round((e.protein||0)/q),c:Math.round((e.carbs||0)/q),f:Math.round((e.fat||0)/q),fb:Math.round((e.fiber||0)/q),sg:Math.round((e.sugar||0)/q)};
   editingId=e.id;
   document.getElementById('dishName').value=e.name;
   document.getElementById('calories').value=per.cal;
@@ -609,7 +627,8 @@ function editEntry(id){
   document.getElementById('mCarbs').value=per.c;
   document.getElementById('mFat').value=per.f;
   document.getElementById('mFiber').value=per.fb;
-  ["calories","mProtein","mCarbs","mFat","mFiber"].forEach(id=>{ document.getElementById(id).dataset.userEdited="1"; });
+  document.getElementById('mSugar').value=per.sg||0;
+  ["calories","mProtein","mCarbs","mFat","mFiber","mSugar"].forEach(id=>{ document.getElementById(id).dataset.userEdited="1"; });
   document.getElementById('qty').value=q;
   document.getElementById('mealTime').value=e.time;
   document.getElementById('mealDate').value=e.date;
@@ -632,7 +651,7 @@ async function saveGoal(){
   const g=parseInt(document.getElementById('goalInput').value,10);
   if(isNaN(g)||g<=0){ alert("Enter a valid calorie goal."); return; }
   state.goal=g;
-  state.goals={protein:numVal('goalProtein'),carbs:numVal('goalCarbs'),fat:numVal('goalFat'),fiber:numVal('goalFiber')};
+  state.goals={protein:numVal('goalProtein'),carbs:numVal('goalCarbs'),fat:numVal('goalFat'),fiber:numVal('goalFiber'),sugar:numVal('goalSugar')||36};
   await persistGoals(); render();
 }
 
@@ -660,10 +679,11 @@ function calcTarget(){
   const fat=Math.round(target*0.25/9);
   const carbs=Math.max(0,Math.round((target - protein*4 - fat*9)/4));
   const fiber=Math.round(target/1000*14);
-  lastTarget={goal:target, goals:{protein,carbs,fat,fiber}, profile:{sex,age,h,w,act,rate}};
+  const sugar=sex==='male'?36:25; // AHA daily added-sugar cap
+  lastTarget={goal:target, goals:{protein,carbs,fat,fiber,sugar}, profile:{sex,age,h,w,act,rate}};
   res.innerHTML=`<div class="big">${target} kcal / day</div>
     <div class="brk">BMR ${bmr} kcal · maintenance ${tdee} kcal · ${rate>0?('cutting −'+deficit+' kcal/day'):'maintenance'}</div>
-    <div class="brk">Suggested macros — Protein ${protein}g · Carbs ${carbs}g · Fat ${fat}g · Fiber ${fiber}g</div>${warn}`;
+    <div class="brk">Suggested macros — Protein ${protein}g · Carbs ${carbs}g · Fat ${fat}g · Fiber ${fiber}g · Sugar &lt;${sugar}g</div>${warn}`;
   document.getElementById('applyTargetBtn').disabled=false;
 }
 async function applyTarget(){
@@ -689,7 +709,7 @@ function goToday(){ document.getElementById('viewDate').value=todayStr(); render
 /* ---------- Aggregation ---------- */
 function dayEntries(date){ return state.entries.filter(e=>e.date===date); }
 function totalFor(date){ return dayEntries(date).reduce((s,e)=>s+(e.calories||0),0); }
-function macroTotals(date){ return dayEntries(date).reduce((a,e)=>({p:a.p+(e.protein||0),c:a.c+(e.carbs||0),f:a.f+(e.fat||0),fb:a.fb+(e.fiber||0)}),{p:0,c:0,f:0,fb:0}); }
+function macroTotals(date){ return dayEntries(date).reduce((a,e)=>({p:a.p+(e.protein||0),c:a.c+(e.carbs||0),f:a.f+(e.fat||0),fb:a.fb+(e.fiber||0),sg:a.sg+(e.sugar||0)}),{p:0,c:0,f:0,fb:0,sg:0}); }
 
 /* ---------- Render ---------- */
 let chart=null;
@@ -702,6 +722,7 @@ function render(){
   document.getElementById('goalCarbs').value=state.goals.carbs;
   document.getElementById('goalFat').value=state.goals.fat;
   document.getElementById('goalFiber').value=state.goals.fiber;
+  document.getElementById('goalSugar').value=state.goals.sugar||36;
 
   const total=totalFor(viewDate);
   document.getElementById('dayTotal').textContent=total;
@@ -715,13 +736,14 @@ function render(){
   setMacro('Carbs',m.c,state.goals.carbs);
   setMacro('Fat',m.f,state.goals.fat);
   setMacro('Fiber',m.fb,state.goals.fiber);
+  setMacro('Sugar',m.sg,state.goals.sugar||36);
 
   document.getElementById('timelineDate').textContent=prettyDate(viewDate);
   const tl=document.getElementById('timeline');
   const list=dayEntries(viewDate).slice().sort((a,b)=>a.time.localeCompare(b.time));
   tl.innerHTML=list.length===0?'<li class="empty">No meals logged for this day yet.</li>':list.map(e=>`<li>
       <span class="t">${e.time}</span>
-      <span class="meta"><div class="name">${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros"><div class="m cal"><div class="l">Calories</div><div class="v">${e.calories||0}</div></div><div class="m p"><div class="l">Protein</div><div class="v">${e.protein||0}g</div></div><div class="m c"><div class="l">Carbs</div><div class="v">${e.carbs||0}g</div></div><div class="m f"><div class="l">Fat</div><div class="v">${e.fat||0}g</div></div><div class="m fb"><div class="l">Fiber</div><div class="v">${e.fiber||0}g</div></div></div></span>
+      <span class="meta"><div class="name">${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros"><div class="m cal"><div class="l">Calories</div><div class="v">${e.calories||0}</div></div><div class="m p"><div class="l">Protein</div><div class="v">${e.protein||0}g</div></div><div class="m c"><div class="l">Carbs</div><div class="v">${e.carbs||0}g</div></div><div class="m f"><div class="l">Fat</div><div class="v">${e.fat||0}g</div></div><div class="m fb"><div class="l">Fiber</div><div class="v">${e.fiber||0}g</div></div><div class="m sg"><div class="l">Sugar</div><div class="v">${e.sugar||0}g</div></div></div></span>
       <span class="acts"><button class="edit" title="Edit" onclick="editEntry('${e.id}')">✎</button><button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></span></li>`).join('');
 
   renderTrends(viewDate); renderWeek(); fillProfileInputs();
@@ -747,7 +769,7 @@ function renderWeek(){
 /* ---------- Export to Excel-compatible CSV ---------- */
 function exportData(){
   if(!state.entries || !state.entries.length){ alert("No meals to export yet."); return; }
-  const header = ['Date','Time','Dish','Servings','Calories (kcal)','Protein (g)','Carbs (g)','Fat (g)','Fiber (g)'];
+  const header = ['Date','Time','Dish','Servings','Calories (kcal)','Protein (g)','Carbs (g)','Fat (g)','Fiber (g)','Sugar (g)'];
   const sorted = state.entries.slice().sort((a,b)=>{
     const ad=(a.date||'')+'T'+(a.time||''); const bd=(b.date||'')+'T'+(b.time||'');
     return ad.localeCompare(bd);
@@ -761,7 +783,7 @@ function exportData(){
     rows.push([
       e.date||'', e.time||'', e.name||'',
       e.qty||1,
-      e.calories||0, e.protein||0, e.carbs||0, e.fat||0, e.fiber||0
+      e.calories||0, e.protein||0, e.carbs||0, e.fat||0, e.fiber||0, e.sugar||0
     ]);
   }
   // Summary section at the bottom
@@ -770,9 +792,10 @@ function exportData(){
   const totC = sorted.reduce((s,e)=>s+(e.carbs||0),0);
   const totF = sorted.reduce((s,e)=>s+(e.fat||0),0);
   const totFb = sorted.reduce((s,e)=>s+(e.fiber||0),0);
+  const totSg = sorted.reduce((s,e)=>s+(e.sugar||0),0);
   rows.push([]);
-  rows.push(['TOTAL','','','',totCal,totP,totC,totF,totFb]);
-  rows.push(['Daily goal','','','',state.goal,state.goals.protein,state.goals.carbs,state.goals.fat,state.goals.fiber]);
+  rows.push(['TOTAL','','','',totCal,totP,totC,totF,totFb,totSg]);
+  rows.push(['Daily goal','','','',state.goal,state.goals.protein,state.goals.carbs,state.goals.fat,state.goals.fiber,state.goals.sugar||36]);
 
   const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
   // UTF-8 BOM so Excel reads ₹, ° and similar characters correctly
