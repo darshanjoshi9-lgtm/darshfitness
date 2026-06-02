@@ -14,7 +14,6 @@
     --text:#0b1220; --muted:#5d6b82; --accent:#06b6d4; --accent2:#2563eb;
     --warn:#f59e0b; --danger:#ef4444;
     --protein:#ec4899; --carbs:#d97706; --fat:#7c3aed; --fiber:#0891b2; --sugar:#f43f5e;
-    --sodium:#0ea5e9; --iron:#b45309; --calcium:#64748b; --vitc:#84cc16; --vitd:#eab308; --potassium:#14b8a6;
     --radius:18px;
     --glass:rgba(255,255,255,.66);
   }
@@ -71,16 +70,6 @@
   .mstat.f .mbar>div{background:var(--fat)} .mstat.f .v{color:var(--fat)}
   .mstat.fb .mbar>div{background:var(--fiber)} .mstat.fb .v{color:var(--fiber)}
   .mstat.sg .mbar>div{background:var(--sugar)} .mstat.sg .v{color:var(--sugar)}
-  .mstat.so .mbar>div{background:var(--sodium)} .mstat.so .v{color:var(--sodium)}
-  .mstat.fe .mbar>div{background:var(--iron)} .mstat.fe .v{color:var(--iron)}
-  .mstat.ca .mbar>div{background:var(--calcium)} .mstat.ca .v{color:var(--calcium)}
-  .mstat.vc .mbar>div{background:var(--vitc)} .mstat.vc .v{color:var(--vitc)}
-  .mstat.vd .mbar>div{background:var(--vitd)} .mstat.vd .v{color:var(--vitd)}
-  .mstat.k .mbar>div{background:var(--potassium)} .mstat.k .v{color:var(--potassium)}
-  .microGrid{display:grid; grid-template-columns:repeat(6,1fr); gap:10px}
-  @media(max-width:680px){ .microGrid{grid-template-columns:repeat(3,1fr)} }
-  @media(max-width:380px){ .microGrid{grid-template-columns:repeat(2,1fr)} }
-  .microcaption{font-size:12px;color:var(--muted);margin-top:-4px;margin-bottom:10px}
   .timeline{list-style:none; padding:0; margin:0}
   .timeline li{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line)}
   .timeline li:last-child{border-bottom:none}
@@ -492,7 +481,7 @@ function prettyDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(
 /* ---------- Estimation ---------- */
 /* AI-powered nutrition estimate via Cloudflare Worker (Gemini Flash) */
 const AI_NUTRITION_URL = "https://billowing-water-d051darshfitness.darshanjoshi9.workers.dev";
-const NUTRI_CACHE_KEY = "ai_nutrition_cache_v1";
+const NUTRI_CACHE_KEY = "ai_nutrition_cache_v2";
 const NUTRI_DEBOUNCE_MS = 900;
 let nutriCache = {};
 try{ nutriCache = JSON.parse(localStorage.getItem(NUTRI_CACHE_KEY)||"{}") || {}; }catch(e){ nutriCache = {}; }
