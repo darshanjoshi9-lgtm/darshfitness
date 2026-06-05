@@ -119,6 +119,31 @@
   code{background:var(--panel2); padding:1px 5px; border-radius:5px; font-size:11px}
   .hidden{display:none !important}
   .syncmsg{font-size:12px;color:var(--muted);margin-top:6px;min-height:14px}
+  /* Meal type badge */
+  .timeline .mealbadge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent2);background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);padding:1px 6px;border-radius:99px;margin-right:6px;vertical-align:1px}
+  .timeline .star{background:transparent;color:#d4dbe5;padding:4px 8px;font-size:15px;line-height:1;width:auto;box-shadow:none}
+  .timeline .star.on{color:#f59e0b}
+  .timeline .star:hover{color:#f59e0b}
+  /* Favourites chips */
+  .favs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;min-height:4px}
+  .favs .favchip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);box-shadow:none;transition:transform .12s,box-shadow .12s}
+  .favs .favchip:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(8,120,180,.4)}
+  .favs .favchip .star{color:#f59e0b;font-size:11px}
+  .favs .favchip .cal{color:var(--muted);font-weight:500;font-size:11px}
+  .favs-empty{font-size:12px;color:var(--muted);font-style:italic}
+  /* Intermittent fasting card */
+  .ifcard{background:var(--panel);border:1px solid rgba(255,255,255,.7);border-radius:var(--radius);padding:16px 20px;box-shadow:0 16px 40px -22px rgba(8,120,180,.45);backdrop-filter:blur(16px);margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .ifcard .iftop{display:flex;align-items:center;gap:12px;flex:1;min-width:180px}
+  .ifcard .ifstate{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  .ifcard .ifval{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .ifcard .ifval.eating{color:var(--accent)}
+  .ifcard .ifval.fasting{color:var(--accent2)}
+  .ifcard .ifval.off{color:var(--muted)}
+  .ifcard .ifbar{flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;min-width:120px}
+  .ifcard .ifbar>div{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .4s}
+  .ifcard .ifctrl{display:flex;gap:8px;align-items:center}
+  .ifcard select,.ifcard input[type=time]{padding:6px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);outline:none}
+  .ifcard label{margin:0 4px 0 0;font-size:11px;color:var(--muted)}
   .calcgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   @media(max-width:680px){.calcgrid{grid-template-columns:1fr 1fr}}
   .calcres{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px}
@@ -170,10 +195,34 @@
 </header>
 
 <div class="wrap">
+
+  <div class="ifcard">
+    <div class="iftop">
+      <div>
+        <div class="ifstate" id="ifState">Fasting protocol</div>
+        <div class="ifval off" id="ifVal">Off</div>
+      </div>
+      <div class="ifbar" id="ifBarWrap" style="display:none"><div id="ifBar"></div></div>
+    </div>
+    <div class="ifctrl">
+      <label>Protocol</label>
+      <select id="ifProtocol" onchange="saveIF()">
+        <option value="off">Off</option>
+        <option value="16:8">16:8</option>
+        <option value="18:6">18:6</option>
+        <option value="20:4">20:4</option>
+        <option value="OMAD">OMAD</option>
+      </select>
+      <label>Eat from</label>
+      <input type="time" id="ifStart" value="12:00" onchange="saveIF()" style="max-width:110px">
+    </div>
+  </div>
+
   <div class="grid">
 
     <div class="card">
       <h2>Log a meal</h2>
+      <div class="favs" id="favs"></div>
       <div class="field">
         <label>Dish name</label>
         <input type="text" id="dishName" name="df_dish_no_fill" placeholder="e.g. '4 almonds', '1 plate chicken biryani', '200g paneer', '1 banana'" oninput="onDishInput()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other">
@@ -194,7 +243,18 @@
           <div><label style="color:var(--sugar)">Sugar</label><input type="number" id="mSugar" min="0" placeholder="0"></div>
         </div>
       </div>
-      <div class="field"><label>Date</label><input type="date" id="mealDate"></div>
+      <div class="row">
+        <div class="field"><label>Date</label><input type="date" id="mealDate"></div>
+        <div class="field"><label>Meal type</label>
+          <select id="mealType">
+            <option value="">— auto from time —</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+          </select>
+        </div>
+      </div>
       <div class="est" id="totalPreview"></div>
       <button id="addBtn" onclick="addEntry()" style="width:100%">Add entry</button>
       <button id="cancelEditBtn" class="ghost" onclick="cancelEdit()" style="width:100%;margin-top:8px;display:none">Cancel edit</button>
@@ -346,9 +406,11 @@ let MODE = "local";            // "cloud" | "local"
 let currentUser = null;        // {id, name, email, picture}
 let isGuest = false;
 let auth=null, db=null;
-let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, profile:null, entries:[]};
+let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, profile:null, if:null, favourites:[], entries:[]};
 const SESSION_KEY = "calTracker_guest_session";
 const DEFAULT_GOALS = {protein:120,carbs:250,fat:65,fiber:30,sugar:36};
+const DEFAULT_IF = {protocol:"off", eatingStart:"12:00"};
+const IF_LENGTHS = {"16:8":8, "18:6":6, "20:4":4, "OMAD":1, "off":24};
 
 /* ---------- Firebase init / auth ---------- */
 function boot(){
@@ -416,8 +478,8 @@ function signOut(){
 /* ---------- Storage ---------- */
 function localKey(){ return "calorieTracker_v3_"+(currentUser?currentUser.id:"none"); }
 function loadStateLocal(){
-  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, entries:s.entries||[]}; return; } }catch(e){}
-  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, entries:[]};
+  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, if:s.if||null, favourites:s.favourites||[], entries:s.entries||[]}; return; } }catch(e){}
+  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, if:null, favourites:[], entries:[]};
 }
 function saveStateLocal(){ try{ localStorage.setItem(localKey(), JSON.stringify(state)); }catch(e){ alert("Could not save locally (storage full). Use Export to back up."); } }
 
@@ -431,6 +493,8 @@ async function loadState(){
       state.goal=(md&&md.goal)||2000;
       state.goals=(md&&md.goals)||{...DEFAULT_GOALS};
       state.profile=(md&&md.profile)||null;
+      state.if=(md&&md.if)||null;
+      state.favourites=(md&&md.favourites)||[];
       const snap=await uref.collection("entries").get();
       state.entries=snap.docs.map(d=>({id:d.id, ...d.data()}));
       setSync("");
@@ -442,7 +506,7 @@ async function loadState(){
 async function persistGoals(){
   if(MODE==="cloud"){
     setSync("Saving…");
-    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null}, {merge:true}); setSync("Saved ✓"); }
+    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null, if:state.if||null, favourites:state.favourites||[]}, {merge:true}); setSync("Saved ✓"); }
     catch(e){ setSync("Save error: "+e.message); }
   }else saveStateLocal();
 }
@@ -576,6 +640,7 @@ function clearForm(){
   document.getElementById('totalPreview').textContent="";
   editingId=null;
   document.getElementById('mealTime').value=nowTime();
+  document.getElementById('mealType').value="";
   document.getElementById('addBtn').textContent="Add entry";
   document.getElementById('cancelEditBtn').style.display="none";
 }
@@ -587,9 +652,11 @@ async function addEntry(){
   if(isNaN(cal)||cal<0){ alert("Please enter a valid calorie number."); return; }
   const q=qtyVal(); const per={cal:numVal('calories'),p:numVal('mProtein'),c:numVal('mCarbs'),f:numVal('mFat'),fb:numVal('mFiber'),sg:numVal('mSugar')};
   const r=x=>Math.round(x*q);
+  const time = document.getElementById('mealTime').value||nowTime();
+  const meal = document.getElementById('mealType').value || defaultMealForTime(time);
   const entry={ id: editingId || ("tmp_"+Date.now()),
     date:document.getElementById('mealDate').value||todayStr(),
-    time:document.getElementById('mealTime').value||nowTime(),
+    time, meal,
     name, qty:q, per,
     calories:r(per.cal), protein:r(per.p), carbs:r(per.c), fat:r(per.f), fiber:r(per.fb), sugar:r(per.sg) };
   if(editingId){
@@ -621,6 +688,7 @@ function editEntry(id){
   document.getElementById('qty').value=q;
   document.getElementById('mealTime').value=e.time;
   document.getElementById('mealDate').value=e.date;
+  document.getElementById('mealType').value=e.meal||"";
   document.getElementById('estimate').textContent="Editing entry — change values and update.";
   document.getElementById('addBtn').textContent="Update entry";
   document.getElementById('cancelEditBtn').style.display="block";
@@ -732,10 +800,10 @@ function render(){
   const list=dayEntries(viewDate).slice().sort((a,b)=>a.time.localeCompare(b.time));
   tl.innerHTML=list.length===0?'<li class="empty">No meals logged for this day yet.</li>':list.map(e=>`<li>
       <span class="t">${e.time}</span>
-      <span class="meta"><div class="name">${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros"><div class="m cal"><div class="l">Calories</div><div class="v">${e.calories||0}</div></div><div class="m p"><div class="l">Protein</div><div class="v">${e.protein||0}g</div></div><div class="m c"><div class="l">Carbs</div><div class="v">${e.carbs||0}g</div></div><div class="m f"><div class="l">Fat</div><div class="v">${e.fat||0}g</div></div><div class="m fb"><div class="l">Fiber</div><div class="v">${e.fiber||0}g</div></div><div class="m sg"><div class="l">Sugar</div><div class="v">${e.sugar||0}g</div></div></div></span>
-      <span class="acts"><button class="edit" title="Edit" onclick="editEntry('${e.id}')">✎</button><button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></span></li>`).join('');
+      <span class="meta"><div class="name">${e.meal?`<span class="mealbadge">${mealLabel(e.meal)}</span>`:''}${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros"><div class="m cal"><div class="l">Calories</div><div class="v">${e.calories||0}</div></div><div class="m p"><div class="l">Protein</div><div class="v">${e.protein||0}g</div></div><div class="m c"><div class="l">Carbs</div><div class="v">${e.carbs||0}g</div></div><div class="m f"><div class="l">Fat</div><div class="v">${e.fat||0}g</div></div><div class="m fb"><div class="l">Fiber</div><div class="v">${e.fiber||0}g</div></div><div class="m sg"><div class="l">Sugar</div><div class="v">${e.sugar||0}g</div></div></div></span>
+      <span class="acts"><button class="star ${isFavourite(e.name)?'on':''}" title="Save as favourite" onclick="toggleFavouriteFromEntry('${e.id}')">★</button><button class="edit" title="Edit" onclick="editEntry('${e.id}')">✎</button><button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></span></li>`).join('');
 
-  renderTrends(viewDate); renderWeek(); fillProfileInputs();
+  renderTrends(viewDate); renderWeek(); fillProfileInputs(); renderFavourites(); renderIF();
 }
 function setMacro(name,val,goal){ document.getElementById('t'+name).textContent=val; document.getElementById('g'+name).textContent=goal; document.getElementById('b'+name).style.width=(goal>0?Math.min(100,Math.round(val/goal*100)):0)+"%"; }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -797,9 +865,130 @@ function exportData(){
   URL.revokeObjectURL(url);
 }
 
+/* ---------- Meal type helper ---------- */
+function defaultMealForTime(timeStr){
+  if(!timeStr) return "snack";
+  const [hh] = timeStr.split(':').map(Number);
+  if(hh>=5 && hh<11) return "breakfast";
+  if(hh>=11 && hh<16) return "lunch";
+  if(hh>=18 && hh<23) return "dinner";
+  return "snack";
+}
+function mealLabel(m){ return m ? (m.charAt(0).toUpperCase()+m.slice(1)) : ""; }
+
+/* ---------- Favourites ---------- */
+function favKey(name){ return (name||'').trim().toLowerCase(); }
+function isFavourite(name){ return !!(state.favourites||[]).find(f=>favKey(f.name)===favKey(name)); }
+async function toggleFavouriteFromEntry(id){
+  const e = state.entries.find(x=>x.id===id); if(!e) return;
+  const k = favKey(e.name);
+  state.favourites = state.favourites || [];
+  const i = state.favourites.findIndex(f=>favKey(f.name)===k);
+  if(i>=0){ state.favourites.splice(i,1); }
+  else{
+    const q = e.qty || 1;
+    const per = e.per || {cal:Math.round((e.calories||0)/q), p:Math.round((e.protein||0)/q), c:Math.round((e.carbs||0)/q), f:Math.round((e.fat||0)/q), fb:Math.round((e.fiber||0)/q), sg:Math.round((e.sugar||0)/q)};
+    state.favourites.unshift({name:e.name, qty:q, per, calTotal:e.calories||0, addedAt:Date.now()});
+    if(state.favourites.length>20) state.favourites.length=20;
+  }
+  await persistGoals(); renderFavourites(); render();
+}
+function renderFavourites(){
+  const wrap = document.getElementById('favs'); if(!wrap) return;
+  const favs = state.favourites || [];
+  if(!favs.length){ wrap.innerHTML='<span class="favs-empty">★ Tip: tap the star on any meal below to save it as a favourite for one-tap re-logging.</span>'; return; }
+  wrap.innerHTML = favs.map((f,idx)=>`<span class="favchip" onclick="fillFromFavourite(${idx})"><span class="star">★</span> ${escapeHtml(f.name)} <span class="cal">${Math.round((f.per&&f.per.cal)||f.calTotal||0)} kcal</span></span>`).join('');
+}
+function fillFromFavourite(idx){
+  const f = (state.favourites||[])[idx]; if(!f) return;
+  document.getElementById('dishName').value = f.name;
+  const per = f.per || {cal:0,p:0,c:0,f:0,fb:0,sg:0};
+  document.getElementById('calories').value = per.cal;
+  document.getElementById('mProtein').value = per.p;
+  document.getElementById('mCarbs').value  = per.c;
+  document.getElementById('mFat').value    = per.f;
+  document.getElementById('mFiber').value  = per.fb;
+  document.getElementById('mSugar').value  = per.sg||0;
+  document.getElementById('qty').value     = f.qty || 1;
+  ["calories","mProtein","mCarbs","mFat","mFiber","mSugar"].forEach(id=>{ document.getElementById(id).dataset.userEdited="1"; });
+  document.getElementById('estimate').textContent = `Loaded from favourites: ${f.name} — adjust as needed and add.`;
+  updateTotalPreview();
+  document.getElementById('dishName').focus();
+}
+
+/* ---------- Intermittent fasting timer ---------- */
+let _ifTimer = null;
+function saveIF(){
+  const protocol = document.getElementById('ifProtocol').value;
+  const eatingStart = document.getElementById('ifStart').value || "12:00";
+  state.if = {protocol, eatingStart};
+  persistGoals();
+  renderIF();
+}
+function timeToMins(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return (h||0)*60+(m||0); }
+function fmtDur(mins){
+  mins = Math.max(0, Math.round(mins));
+  const h = Math.floor(mins/60), m = mins%60;
+  return `${h}h ${String(m).padStart(2,'0')}m`;
+}
+function renderIF(){
+  const cfg = state.if || DEFAULT_IF;
+  document.getElementById('ifProtocol').value = cfg.protocol || "off";
+  document.getElementById('ifStart').value    = cfg.eatingStart || "12:00";
+  const stateEl = document.getElementById('ifState');
+  const valEl   = document.getElementById('ifVal');
+  const bar     = document.getElementById('ifBarWrap');
+  const barFill = document.getElementById('ifBar');
+  if(cfg.protocol === "off"){
+    stateEl.textContent = "Fasting protocol";
+    valEl.textContent = "Off";
+    valEl.className = "ifval off";
+    bar.style.display = "none";
+    return;
+  }
+  bar.style.display = "block";
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  const startMin = timeToMins(cfg.eatingStart);
+  const eatLen = (IF_LENGTHS[cfg.protocol] || 8) * 60;
+  const endMin = (startMin + eatLen) % (24*60);
+  // determine if currently in eating window (handles wraparound)
+  let inEating;
+  if(startMin <= endMin) inEating = nowMin >= startMin && nowMin < endMin;
+  else inEating = nowMin >= startMin || nowMin < endMin;
+  if(inEating){
+    let remain = endMin - nowMin; if(remain<0) remain += 24*60;
+    const total = eatLen;
+    const pct = Math.min(100, Math.max(0, ((total-remain)/total)*100));
+    stateEl.textContent = `Eating window · ${cfg.protocol}`;
+    valEl.textContent = `${fmtDur(remain)} left to eat`;
+    valEl.className = "ifval eating";
+    barFill.style.width = pct + "%";
+  }else{
+    let untilStart = startMin - nowMin; if(untilStart<0) untilStart += 24*60;
+    const fastLen = (24*60) - eatLen;
+    const elapsed = fastLen - untilStart;
+    const pct = Math.min(100, Math.max(0, (elapsed/fastLen)*100));
+    stateEl.textContent = `Fasting · ${cfg.protocol}`;
+    valEl.textContent = `${fmtDur(untilStart)} until eat window`;
+    valEl.className = "ifval fasting";
+    barFill.style.width = pct + "%";
+  }
+}
+function startIFTicker(){
+  if(_ifTimer) clearInterval(_ifTimer);
+  renderIF();
+  _ifTimer = setInterval(renderIF, 30000); // refresh every 30s
+}
+
 /* ---------- Init ---------- */
-(function formInit(){ document.getElementById('mealDate').value=todayStr(); document.getElementById('viewDate').value=todayStr(); document.getElementById('mealTime').value=nowTime(); })();
+(function formInit(){
+  document.getElementById('mealDate').value=todayStr();
+  document.getElementById('viewDate').value=todayStr();
+  document.getElementById('mealTime').value=nowTime();
+})();
 window.addEventListener('load', boot);
+window.addEventListener('load', startIFTicker);
 
 /* ---------- Anonymous visit counter (one ping per browser, ever) ---------- */
 (function trackVisit(){
