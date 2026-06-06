@@ -136,18 +136,35 @@
   .favs .favchip .cal{color:var(--muted);font-weight:500;font-size:11px}
   .favs-empty{font-size:12px;color:var(--muted);font-style:italic}
   /* Intermittent fasting card */
-  .ifcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;box-shadow:0 18px 50px -22px rgba(217,70,239,.30), 0 18px 50px -28px rgba(34,211,238,.25);backdrop-filter:blur(18px);margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .ifcard .iftop{display:flex;align-items:center;gap:12px;flex:1;min-width:180px}
-  .ifcard .ifstate{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
-  .ifcard .ifval{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-  .ifcard .ifval.eating{color:var(--accent)}
-  .ifcard .ifval.fasting{color:var(--accent2)}
-  .ifcard .ifval.off{color:var(--muted)}
-  .ifcard .ifbar{flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;min-width:120px}
-  .ifcard .ifbar>div{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .4s}
-  .ifcard .ifctrl{display:flex;gap:8px;align-items:center}
-  .ifcard select,.ifcard input[type=time]{padding:6px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);outline:none}
-  .ifcard label{margin:0 4px 0 0;font-size:11px;color:var(--muted)}
+  .ifcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;box-shadow:0 18px 50px -22px rgba(217,70,239,.30), 0 18px 50px -28px rgba(34,211,238,.25);backdrop-filter:blur(18px);margin-bottom:18px;display:flex;flex-direction:column;gap:18px}
+  .ifcard .iflayout{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center}
+  @media(max-width:640px){ .ifcard .iflayout{grid-template-columns:1fr; justify-items:center} }
+  .ifcard .ifring{position:relative;width:180px;height:180px;flex-shrink:0}
+  .ifcard .ifring svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 14px rgba(217,70,239,.35))}
+  .ifcard .ifring svg circle:last-child{transition:stroke-dashoffset .6s ease}
+  .ifcard .ifcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .ifcard .ifcountdown{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.01em}
+  .ifcard .ifsubstate{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px;font-weight:700}
+  .ifcard .ifctrl-grid{display:flex;flex-direction:column;gap:12px;width:100%}
+  .ifcard .ifrow{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
+  @media(max-width:640px){ .ifcard .ifrow{grid-template-columns:1fr 1fr} }
+  .ifcard .ifield{display:flex;flex-direction:column;gap:4px}
+  .ifcard .ifield label{font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;font-weight:600;margin:0}
+  .ifcard select,.ifcard input[type=time],.ifcard input[type=datetime-local],.ifcard input[type=number]{padding:9px 11px;font-size:13px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);outline:none;width:100%}
+  .ifcard .ifstage{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--ink2)}
+  .ifcard .ifstage strong{color:var(--text);font-size:14px;display:block;margin-bottom:4px}
+  .ifcard .ifmeta{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+  .ifcard .ifstreak{background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.32);color:#fde68a;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700}
+  .ifcard .iftotal{font-size:12px}
+  .ifcard .ifhistory{margin-top:4px}
+  .ifcard .ifhistory summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600;list-style:none;padding:6px 0}
+  .ifcard .ifhistory summary::-webkit-details-marker{display:none}
+  .ifcard .ifhistory summary::before{content:"▸ ";color:var(--accent2);display:inline-block;transition:transform .2s}
+  .ifcard .ifhistory[open] summary::before{transform:rotate(90deg)}
+  .ifcard .ifhistory ul{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:6px}
+  .ifcard .ifhistory li{display:flex;justify-content:space-between;font-size:12px;padding:9px 12px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;font-variant-numeric:tabular-nums}
+  .ifcard .ifhit{color:#34d399;font-weight:700}
+  .ifcard .ifmiss{color:var(--muted)}
   .calcgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   @media(max-width:680px){.calcgrid{grid-template-columns:1fr 1fr}}
   .calcres{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px}
@@ -201,25 +218,54 @@
 <div class="wrap">
 
   <div class="ifcard">
-    <div class="iftop">
-      <div>
-        <div class="ifstate" id="ifState">Fasting protocol</div>
-        <div class="ifval off" id="ifVal">Off</div>
+    <div class="iflayout">
+      <div class="ifring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="ifgrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#d946ef"/>
+              <stop offset="100%" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+          <circle id="ifProgressCircle" cx="60" cy="60" r="54" fill="none" stroke="url(#ifgrad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="ifcenter">
+          <div class="ifcountdown" id="ifCountdown">--:--</div>
+          <div class="ifsubstate" id="ifSubstate">READY</div>
+        </div>
       </div>
-      <div class="ifbar" id="ifBarWrap" style="display:none"><div id="ifBar"></div></div>
+      <div class="ifctrl-grid">
+        <div class="ifrow">
+          <div class="ifield"><label>Protocol</label>
+            <select id="ifProtocol" onchange="onProtocolChange()">
+              <option value="12:12">12:12 — Circadian (12h fast)</option>
+              <option value="13:11">13:11 — 13h fast</option>
+              <option value="14:10">14:10 — 14h fast</option>
+              <option value="16:8" selected>16:8 — Classic (16h fast)</option>
+              <option value="18:6">18:6 — 18h fast</option>
+              <option value="19:5">19:5 — 19h fast</option>
+              <option value="20:4">20:4 — Warrior (20h fast)</option>
+              <option value="OMAD">OMAD — One Meal A Day (23h fast)</option>
+              <option value="24h">24h — Extended</option>
+              <option value="36h">36h — Extended</option>
+              <option value="48h">48h — Extended</option>
+              <option value="72h">72h — Extended</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="ifield" id="ifCustomWrap" style="display:none"><label>Custom target (h)</label><input type="number" id="ifCustomHours" min="1" max="168" step="0.5" placeholder="e.g. 18" onchange="onProtocolChange()"></div>
+          <div class="ifield" id="ifStartTimeWrap"><label>Start time</label><input type="datetime-local" id="ifStartTime"></div>
+        </div>
+        <button id="ifBtn" onclick="toggleFast()" style="width:100%">Start fast</button>
+      </div>
     </div>
-    <div class="ifctrl">
-      <label>Protocol</label>
-      <select id="ifProtocol" onchange="saveIF()">
-        <option value="off">Off</option>
-        <option value="16:8">16:8</option>
-        <option value="18:6">18:6</option>
-        <option value="20:4">20:4</option>
-        <option value="OMAD">OMAD</option>
-      </select>
-      <label>Eat from</label>
-      <input type="time" id="ifStart" value="12:00" onchange="saveIF()" style="max-width:110px">
+    <div class="ifstage" id="ifStage">Pick a protocol and tap <strong>Start fast</strong> when you finish your last meal. You can backdate the start time if needed.</div>
+    <div class="ifmeta">
+      <span class="ifstreak" id="ifStreak">🔥 0 day streak</span>
+      <span class="iftotal" id="ifTotal">0 fasts completed · 0h total</span>
     </div>
+    <details class="ifhistory" id="ifHistoryWrap"><summary>Recent fasts</summary><ul id="ifHistoryList"></ul></details>
   </div>
 
   <div class="grid">
@@ -410,11 +456,24 @@ let MODE = "local";            // "cloud" | "local"
 let currentUser = null;        // {id, name, email, picture}
 let isGuest = false;
 let auth=null, db=null;
-let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, profile:null, if:null, favourites:[], entries:[]};
+let state = {goal:2000, goals:{protein:120,carbs:250,fat:65,fiber:30}, profile:null, fasting:null, favourites:[], entries:[]};
 const SESSION_KEY = "calTracker_guest_session";
 const DEFAULT_GOALS = {protein:120,carbs:250,fat:65,fiber:30,sugar:36};
-const DEFAULT_IF = {protocol:"off", eatingStart:"12:00"};
-const IF_LENGTHS = {"16:8":8, "18:6":6, "20:4":4, "OMAD":1, "off":24};
+const FAST_PROTOCOLS = {"12:12":12,"13:11":13,"14:10":14,"16:8":16,"18:6":18,"19:5":19,"20:4":20,"OMAD":23,"24h":24,"36h":36,"48h":48,"72h":72};
+const DEFAULT_FASTING = {protocol:"16:8", current:null, history:[]};
+const FAST_STAGES = [
+  {atH:0,  name:"Digestion & blood sugar rise",      body:"Carbs from your last meal are being broken down into glucose. Insulin is high; the body is in fed mode."},
+  {atH:4,  name:"Blood sugar settles",                body:"Digestion winding down. Insulin starts to fall. You're transitioning out of fed state."},
+  {atH:8,  name:"Glycogen burning",                   body:"Liver glycogen is now the main energy source. The body hasn't switched to fat yet."},
+  {atH:12, name:"Fat burning begins",                 body:"Glycogen tank getting low. The body starts breaking down fat for fuel. Welcome to lipolysis."},
+  {atH:14, name:"Ketone production rising",           body:"Fat breakdown is accelerating. Your liver starts producing ketones — alternative brain fuel."},
+  {atH:16, name:"Ketosis ramp",                       body:"Now in light ketosis. Many people report mental clarity here. Hunger usually drops."},
+  {atH:18, name:"Autophagy begins",                   body:"Cellular cleanup mode. Damaged proteins and organelles get recycled. The famous longevity stage."},
+  {atH:24, name:"Deep autophagy + HGH surge",         body:"Human growth hormone rises sharply. Insulin sensitivity peaks. Cellular cleanup deepens."},
+  {atH:36, name:"Reduced inflammation",               body:"Inflammatory markers drop. Stem cell production starts. Body is in deep maintenance mode."},
+  {atH:48, name:"Stem cell boost + immune reset",     body:"Old immune cells are being recycled. New stem cells produced. Longevity research territory."},
+  {atH:72, name:"Maximum autophagy",                  body:"Nearly every system is in repair mode. Stop here if you've never gone this long — break gently."}
+];
 
 /* ---------- Firebase init / auth ---------- */
 function boot(){
@@ -482,8 +541,8 @@ function signOut(){
 /* ---------- Storage ---------- */
 function localKey(){ return "calorieTracker_v3_"+(currentUser?currentUser.id:"none"); }
 function loadStateLocal(){
-  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, if:s.if||null, favourites:s.favourites||[], entries:s.entries||[]}; return; } }catch(e){}
-  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, if:null, favourites:[], entries:[]};
+  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, fasting:s.fasting||null, favourites:s.favourites||[], entries:s.entries||[]}; return; } }catch(e){}
+  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, fasting:null, favourites:[], entries:[]};
 }
 function saveStateLocal(){ try{ localStorage.setItem(localKey(), JSON.stringify(state)); }catch(e){ alert("Could not save locally (storage full). Use Export to back up."); } }
 
@@ -497,7 +556,7 @@ async function loadState(){
       state.goal=(md&&md.goal)||2000;
       state.goals=(md&&md.goals)||{...DEFAULT_GOALS};
       state.profile=(md&&md.profile)||null;
-      state.if=(md&&md.if)||null;
+      state.fasting=(md&&md.fasting)||null;
       state.favourites=(md&&md.favourites)||[];
       const snap=await uref.collection("entries").get();
       state.entries=snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -510,7 +569,7 @@ async function loadState(){
 async function persistGoals(){
   if(MODE==="cloud"){
     setSync("Saving…");
-    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null, if:state.if||null, favourites:state.favourites||[]}, {merge:true}); setSync("Saved ✓"); }
+    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null, fasting:state.fasting||null, favourites:state.favourites||[]}, {merge:true}); setSync("Saved ✓"); }
     catch(e){ setSync("Save error: "+e.message); }
   }else saveStateLocal();
 }
@@ -807,7 +866,7 @@ function render(){
       <span class="meta"><div class="name">${e.meal?`<span class="mealbadge">${mealLabel(e.meal)}</span>`:''}${escapeHtml(e.name)}${(e.qty&&e.qty!=1)?` <span class="qty">×${e.qty}</span>`:''}</div><div class="macros"><div class="m cal"><div class="l">Calories</div><div class="v">${e.calories||0}</div></div><div class="m p"><div class="l">Protein</div><div class="v">${e.protein||0}g</div></div><div class="m c"><div class="l">Carbs</div><div class="v">${e.carbs||0}g</div></div><div class="m f"><div class="l">Fat</div><div class="v">${e.fat||0}g</div></div><div class="m fb"><div class="l">Fiber</div><div class="v">${e.fiber||0}g</div></div><div class="m sg"><div class="l">Sugar</div><div class="v">${e.sugar||0}g</div></div></div></span>
       <span class="acts"><button class="star ${isFavourite(e.name)?'on':''}" title="Save as favourite" onclick="toggleFavouriteFromEntry('${e.id}')">★</button><button class="edit" title="Edit" onclick="editEntry('${e.id}')">✎</button><button class="del" title="Delete" onclick="deleteEntry('${e.id}')">×</button></span></li>`).join('');
 
-  renderTrends(viewDate); renderWeek(); fillProfileInputs(); renderFavourites(); renderIF();
+  renderTrends(viewDate); renderWeek(); fillProfileInputs(); renderFavourites(); renderFasting();
 }
 function setMacro(name,val,goal){ document.getElementById('t'+name).textContent=val; document.getElementById('g'+name).textContent=goal; document.getElementById('b'+name).style.width=(goal>0?Math.min(100,Math.round(val/goal*100)):0)+"%"; }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -921,68 +980,170 @@ function fillFromFavourite(idx){
 }
 
 /* ---------- Intermittent fasting timer ---------- */
-let _ifTimer = null;
-function saveIF(){
-  const protocol = document.getElementById('ifProtocol').value;
-  const eatingStart = document.getElementById('ifStart').value || "12:00";
-  state.if = {protocol, eatingStart};
+let _fastingTimer = null;
+function ensureFasting(){
+  if(!state.fasting) state.fasting = {protocol:"16:8", current:null, history:[]};
+  if(!state.fasting.history) state.fasting.history = [];
+  return state.fasting;
+}
+function currentStage(elapsedH){
+  let stage = FAST_STAGES[0];
+  for(const s of FAST_STAGES) if(elapsedH >= s.atH) stage = s;
+  return stage;
+}
+function getTargetHours(){
+  const sel = document.getElementById('ifProtocol').value;
+  if(sel === 'custom'){
+    const h = parseFloat(document.getElementById('ifCustomHours').value);
+    return (isNaN(h) || h <= 0) ? 16 : Math.min(168, h);
+  }
+  return FAST_PROTOCOLS[sel] || 16;
+}
+function onProtocolChange(){
+  const sel = document.getElementById('ifProtocol').value;
+  document.getElementById('ifCustomWrap').style.display = sel === 'custom' ? 'flex' : 'none';
+  const cf = ensureFasting();
+  cf.protocol = sel;
+  if(sel === 'custom'){
+    const h = parseFloat(document.getElementById('ifCustomHours').value);
+    if(!isNaN(h) && h > 0) cf.customHours = h;
+  }
   persistGoals();
-  renderIF();
+  renderFasting();
 }
-function timeToMins(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return (h||0)*60+(m||0); }
-function fmtDur(mins){
-  mins = Math.max(0, Math.round(mins));
-  const h = Math.floor(mins/60), m = mins%60;
-  return `${h}h ${String(m).padStart(2,'0')}m`;
-}
-function renderIF(){
-  const cfg = state.if || DEFAULT_IF;
-  document.getElementById('ifProtocol').value = cfg.protocol || "off";
-  document.getElementById('ifStart').value    = cfg.eatingStart || "12:00";
-  const stateEl = document.getElementById('ifState');
-  const valEl   = document.getElementById('ifVal');
-  const bar     = document.getElementById('ifBarWrap');
-  const barFill = document.getElementById('ifBar');
-  if(cfg.protocol === "off"){
-    stateEl.textContent = "Fasting protocol";
-    valEl.textContent = "Off";
-    valEl.className = "ifval off";
-    bar.style.display = "none";
-    return;
-  }
-  bar.style.display = "block";
-  const now = new Date();
-  const nowMin = now.getHours()*60 + now.getMinutes();
-  const startMin = timeToMins(cfg.eatingStart);
-  const eatLen = (IF_LENGTHS[cfg.protocol] || 8) * 60;
-  const endMin = (startMin + eatLen) % (24*60);
-  // determine if currently in eating window (handles wraparound)
-  let inEating;
-  if(startMin <= endMin) inEating = nowMin >= startMin && nowMin < endMin;
-  else inEating = nowMin >= startMin || nowMin < endMin;
-  if(inEating){
-    let remain = endMin - nowMin; if(remain<0) remain += 24*60;
-    const total = eatLen;
-    const pct = Math.min(100, Math.max(0, ((total-remain)/total)*100));
-    stateEl.textContent = `Eating window · ${cfg.protocol}`;
-    valEl.textContent = `${fmtDur(remain)} left to eat`;
-    valEl.className = "ifval eating";
-    barFill.style.width = pct + "%";
+async function toggleFast(){
+  const cf = ensureFasting();
+  if(cf.current){
+    const start = new Date(cf.current.startTime);
+    const end = new Date();
+    const elapsedH = (end - start) / 3600000;
+    cf.history.unshift({
+      start: cf.current.startTime,
+      end: end.toISOString(),
+      targetHours: cf.current.targetHours,
+      achievedHours: Math.round(elapsedH * 10) / 10
+    });
+    if(cf.history.length > 50) cf.history.length = 50;
+    cf.current = null;
   }else{
-    let untilStart = startMin - nowMin; if(untilStart<0) untilStart += 24*60;
-    const fastLen = (24*60) - eatLen;
-    const elapsed = fastLen - untilStart;
-    const pct = Math.min(100, Math.max(0, (elapsed/fastLen)*100));
-    stateEl.textContent = `Fasting · ${cfg.protocol}`;
-    valEl.textContent = `${fmtDur(untilStart)} until eat window`;
-    valEl.className = "ifval fasting";
-    barFill.style.width = pct + "%";
+    const protocol = document.getElementById('ifProtocol').value;
+    const targetH = getTargetHours();
+    const startInput = document.getElementById('ifStartTime').value;
+    let startDate;
+    if(startInput){
+      startDate = new Date(startInput);
+      if(isNaN(startDate.getTime())) startDate = new Date();
+    }else{
+      startDate = new Date();
+    }
+    if(startDate.getTime() > Date.now()){ alert("Start time can't be in the future."); return; }
+    cf.current = { startTime: startDate.toISOString(), targetHours: targetH, protocol };
+    cf.protocol = protocol;
+  }
+  await persistGoals();
+  renderFasting();
+}
+function computeStreak(history){
+  const hits = (history || []).filter(h => h.achievedHours >= h.targetHours);
+  if(!hits.length) return 0;
+  const days = new Set(hits.map(h => (h.end || '').slice(0, 10)));
+  const today = new Date(); today.setHours(0,0,0,0);
+  let streak = 0;
+  for(let i = 0; i < 365; i++){
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const dStr = localISO(d);
+    if(days.has(dStr)) streak++;
+    else if(i === 0) continue; // grace today
+    else break;
+  }
+  return streak;
+}
+function setLocalDateTimeInput(el){
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  el.value = local.toISOString().slice(0, 16);
+}
+function renderFasting(){
+  const cf = ensureFasting();
+  const protocolEl = document.getElementById('ifProtocol');
+  const customWrap = document.getElementById('ifCustomWrap');
+  const customIn   = document.getElementById('ifCustomHours');
+  const countdownEl= document.getElementById('ifCountdown');
+  const substateEl = document.getElementById('ifSubstate');
+  const stageEl    = document.getElementById('ifStage');
+  const btn        = document.getElementById('ifBtn');
+  const circle     = document.getElementById('ifProgressCircle');
+  const startWrap  = document.getElementById('ifStartTimeWrap');
+  const startIn    = document.getElementById('ifStartTime');
+  const streakEl   = document.getElementById('ifStreak');
+  const totalEl    = document.getElementById('ifTotal');
+  const histList   = document.getElementById('ifHistoryList');
+  if(!protocolEl) return;
+
+  protocolEl.value = cf.protocol || '16:8';
+  customWrap.style.display = cf.protocol === 'custom' ? 'flex' : 'none';
+  if(cf.protocol === 'custom' && cf.customHours) customIn.value = cf.customHours;
+
+  const circumference = 2 * Math.PI * 54;
+
+  if(!cf.current){
+    countdownEl.textContent = '--:--';
+    substateEl.textContent = 'READY';
+    stageEl.innerHTML = 'Pick a protocol and tap <strong>Start fast</strong> when you finish your last meal. You can backdate the start time if needed.';
+    btn.textContent = 'Start fast';
+    circle.setAttribute('stroke-dashoffset', circumference);
+    startWrap.style.display = 'flex';
+    if(!startIn.value) setLocalDateTimeInput(startIn);
+  }else{
+    const start = new Date(cf.current.startTime);
+    const elapsedMs = Date.now() - start.getTime();
+    const elapsedH = Math.max(0, elapsedMs / 3600000);
+    const targetH = cf.current.targetHours;
+    const pct = Math.min(100, (elapsedH / targetH) * 100);
+    circle.setAttribute('stroke-dashoffset', String(circumference * (1 - pct/100)));
+    if(elapsedH < targetH){
+      const remain = targetH - elapsedH;
+      const remH = Math.floor(remain);
+      const remM = Math.floor((remain - remH) * 60);
+      const remS = Math.floor((((remain - remH) * 60) - remM) * 60);
+      countdownEl.textContent = `${remH}:${String(remM).padStart(2,'0')}:${String(remS).padStart(2,'0')}`;
+      substateEl.textContent = 'TIME TO GOAL';
+    }else{
+      const extra = elapsedH - targetH;
+      const eH = Math.floor(extra);
+      const eM = Math.floor((extra - eH) * 60);
+      countdownEl.textContent = `+${eH}:${String(eM).padStart(2,'0')}`;
+      substateEl.textContent = 'GOAL REACHED ✓';
+    }
+    const st = currentStage(elapsedH);
+    const elapsedHh = Math.floor(elapsedH);
+    const elapsedMm = Math.floor((elapsedH % 1) * 60);
+    stageEl.innerHTML = `<strong>${escapeHtml(st.name)}</strong>${escapeHtml(st.body)}<br><span style="color:var(--muted);font-size:11px;margin-top:6px;display:inline-block">Elapsed: ${elapsedHh}h ${elapsedMm}m · Target: ${targetH}h · Started: ${start.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>`;
+    btn.textContent = 'End fast';
+    startWrap.style.display = 'none';
+  }
+
+  const streak = computeStreak(cf.history);
+  streakEl.innerHTML = `🔥 ${streak} day streak`;
+  const completed = (cf.history || []).length;
+  const totalHours = (cf.history || []).reduce((s,h)=>s+(h.achievedHours||0),0);
+  totalEl.textContent = `${completed} fast${completed===1?'':'s'} completed · ${Math.round(totalHours)}h total`;
+
+  if(!cf.history || !cf.history.length){
+    histList.innerHTML = '<li style="opacity:.6;justify-content:flex-start">No fasts recorded yet.</li>';
+  }else{
+    histList.innerHTML = cf.history.slice(0,15).map(h=>{
+      const date = new Date(h.end);
+      const dateStr = date.toLocaleDateString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      const hit = h.achievedHours >= h.targetHours;
+      return `<li><span>${escapeHtml(dateStr)}</span><span class="${hit?'ifhit':'ifmiss'}">${h.achievedHours}h / ${h.targetHours}h${hit?' ✓':''}</span></li>`;
+    }).join('');
   }
 }
-function startIFTicker(){
-  if(_ifTimer) clearInterval(_ifTimer);
-  renderIF();
-  _ifTimer = setInterval(renderIF, 30000); // refresh every 30s
+function startFastingTicker(){
+  if(_fastingTimer) clearInterval(_fastingTimer);
+  renderFasting();
+  _fastingTimer = setInterval(()=>{ if(state.fasting && state.fasting.current) renderFasting(); }, 1000);
 }
 
 /* ---------- Init ---------- */
@@ -992,7 +1153,7 @@ function startIFTicker(){
   document.getElementById('mealTime').value=nowTime();
 })();
 window.addEventListener('load', boot);
-window.addEventListener('load', startIFTicker);
+window.addEventListener('load', startFastingTicker);
 
 /* ---------- Anonymous visit counter (one ping per browser, ever) ---------- */
 (function trackVisit(){
