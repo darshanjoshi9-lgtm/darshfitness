@@ -26,7 +26,10 @@
       linear-gradient(180deg,#0a0b1f,#0b0d1c 60%,#0c0e22); background-attachment:fixed; color:var(--text); line-height:1.5; -webkit-font-smoothing:antialiased;}
   header{position:sticky; top:0; z-index:30; padding:18px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; background:rgba(11,13,28,.72); backdrop-filter:saturate(180%) blur(14px);}
   h1{font-size:18px; margin:0; display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:-.01em}
-  .brand-logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#d946ef,#22d3ee);display:grid;place-items:center;color:#fff;box-shadow:0 10px 28px -8px rgba(217,70,239,.55);flex-shrink:0}
+  .brand-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;transition:transform .15s, filter .15s}
+  .brand-link:hover{transform:translateY(-1px); filter:brightness(1.08)}
+  .brand-link:hover .brand-logo{box-shadow:0 14px 36px -8px rgba(217,70,239,.75)}
+  .brand-logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#d946ef,#22d3ee);display:grid;place-items:center;color:#fff;box-shadow:0 10px 28px -8px rgba(217,70,239,.55);flex-shrink:0;transition:box-shadow .2s}
   .brand-logo svg{width:22px;height:22px;stroke:#fff}
   .brand-name{display:flex;flex-direction:column;line-height:1.1}
   .brand-name .b1{font-weight:800;font-size:16px;background:linear-gradient(115deg,#f0abfc,#7dd3fc,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -201,10 +204,12 @@
 <div id="app" class="hidden">
 <header>
   <h1>
-    <span class="brand-logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-    </span>
-    <span class="brand-name"><span class="b1">Darsh Fitness</span><span class="b2">Calorie tracker</span></span>
+    <a href="index.html" class="brand-link" title="Back to home" aria-label="Go to Darsh Fitness home page">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      </span>
+      <span class="brand-name"><span class="b1">Darsh Fitness</span><span class="b2">Calorie tracker</span></span>
+    </a>
   </h1>
   <div class="toolbar">
     <span class="pill" id="modePill">Local</span>
