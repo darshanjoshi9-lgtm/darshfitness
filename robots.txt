@@ -1,0 +1,11 @@
+# Darsh Fitness — allow all search engines to crawl
+User-agent: *
+Allow: /
+
+# Don't index internal setup docs
+Disallow: /SETUP-deploy.md
+Disallow: /SETUP-custom-domain.md
+Disallow: /SETUP-gitlab.md
+Disallow: /SETUP-google-login.md
+
+Sitemap: https://darshfitness.in/sitemap.xml
