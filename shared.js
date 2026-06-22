@@ -45,17 +45,38 @@ let auth=null, db=null;
 let state = {goal:2000, goals:{...DEFAULT_GOALS}, profile:null, fasting:null, favourites:[], entries:[]};
 
 /* ---------- Boot / Auth ---------- */
+function hasStoredFirebaseAuth(){
+  // Firebase persists auth in localStorage under keys like "firebase:authUser:{apiKey}:[DEFAULT]"
+  try{
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf('firebase:authUser:') === 0) return true;
+    }
+  }catch(e){}
+  return false;
+}
 function boot(){
   if(FIREBASE_ENABLED){
     try{
       firebase.initializeApp(firebaseConfig);
       auth=firebase.auth(); db=firebase.firestore();
+      // Decide synchronously whether to show the overlay, to avoid flashing it
+      // between page navigations when the user is already signed in.
+      const hasCloudAuth = hasStoredFirebaseAuth();
+      let guestSaved=null; try{ guestSaved=JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){}
+      if(!hasCloudAuth && !(guestSaved && guestSaved.id)){
+        showOverlay();
+      }
       auth.onAuthStateChanged(async (u)=>{
         if(u){ isGuest=false; await setUserCloud(u); }
-        else if(!isGuest){ showOverlay(); }
+        else if(!isGuest){
+          // No cloud user, no guest session — fall back to overlay
+          if(!(guestSaved && guestSaved.id)) showOverlay();
+        }
       });
-    }catch(e){ showNotice("Firebase failed to start. Use guest mode. ("+e.message+")"); }
+    }catch(e){ showOverlay(); showNotice("Firebase failed to start. Use guest mode. ("+e.message+")"); }
   }else{
+    showOverlay();
     const gb=document.getElementById('googleBtn'); if(gb) gb.classList.add('hidden');
     const sub=document.getElementById('signinSub'); if(sub) sub.textContent="Cloud sync isn't configured yet — use guest mode for now.";
     showNotice("Add your Firebase config in the file (see SETUP-deploy.md) to turn on Google Sign-In and cross-device sync.");
