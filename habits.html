@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habits — Darsh Fitness</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<meta name="theme-color" content="#0b0d1c">
+
+<link rel="canonical" href="https://darshfitness.in/habits.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="description" content="Turn fitness into a game. Daily habit grid with auto-ticked goals (calorie goal, fast completed, meal logged) plus your own custom habits. Free, no ads.">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://darshfitness.in/habits.html">
+<meta property="og:title" content="Darsh Fitness — Habit tracker">
+<meta property="og:description" content="Daily habit grid + streaks. Auto-ticks from your fitness data. Free.">
+<meta property="og:image" content="https://darshfitness.in/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Darsh Fitness">
+<meta property="og:locale" content="en_IN">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Darsh Fitness — Habits">
+<meta name="twitter:description" content="Habit grid + streaks. Auto-ticks from your fitness data. Free.">
+<meta name="twitter:image" content="https://darshfitness.in/og-image.png">
+
+<link rel="stylesheet" href="shared.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<style>
+  /* ============ Habit grid ============ */
+  .monthnav{display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+  .monthnav .title{font-size:18px;font-weight:800;background:linear-gradient(115deg,#f0abfc,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent;min-width:160px}
+  .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  @media(max-width:640px){.statgrid{grid-template-columns:1fr 1fr}}
+  .statgrid .s{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .statgrid .s .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  .statgrid .s .v{font-size:26px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums;background:linear-gradient(115deg,#f0abfc,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .statgrid .s .sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .habitscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+  .habitscroll::-webkit-scrollbar{height:8px}
+  .habitscroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+  .habitgrid{display:grid;min-width:max-content}
+  .habitgrid .hcell{padding:8px 6px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;min-height:38px}
+  .habitgrid .hcell.head{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.04em;background:rgba(255,255,255,.04);position:sticky;top:0;z-index:2}
+  .habitgrid .hcell.namecell{position:sticky;left:0;background:rgba(15,18,38,.96);backdrop-filter:blur(6px);z-index:3;justify-content:flex-start;padding:8px 12px;font-weight:600;font-size:13px;gap:8px;min-width:200px;max-width:240px}
+  .habitgrid .hcell.namecell.head{z-index:4}
+  .habitgrid .hcell.namecell .hicon{font-size:16px}
+  .habitgrid .hcell.namecell .hname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .habitgrid .hcell.namecell .hstreak{font-size:10px;color:#fbbf24;font-weight:700;font-variant-numeric:tabular-nums;background:rgba(251,191,36,.08);padding:1px 6px;border-radius:99px;border:1px solid rgba(251,191,36,.25)}
+  .habitgrid .hcell.namecell .hauto{font-size:9px;color:var(--accent2);background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.28);padding:1px 5px;border-radius:99px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .habitgrid .hcell.namecell .hdel{background:transparent;color:var(--muted);padding:2px 6px;font-size:13px;line-height:1;width:auto;box-shadow:none}
+  .habitgrid .hcell.namecell .hdel:hover{color:var(--danger)}
+  .habitgrid .hcell.daycol{width:38px;cursor:pointer;user-select:none;font-size:14px;color:var(--muted);transition:background .12s, color .12s}
+  .habitgrid .hcell.daycol.future{cursor:default;color:rgba(255,255,255,.12)}
+  .habitgrid .hcell.daycol.today{box-shadow:inset 0 0 0 2px var(--accent2)}
+  .habitgrid .hcell.daycol.done{color:#34d399;background:rgba(52,211,153,.10)}
+  .habitgrid .hcell.daycol.auto.done{color:#22d3ee;background:rgba(34,211,238,.10)}
+  .habitgrid .hcell.daycol:not(.future):not(.done):hover{background:rgba(255,255,255,.05);color:var(--text)}
+  .habitgrid .hcell.daycol.auto{cursor:default}
+  .habitgrid .hcell.dayhead{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;flex-direction:column;gap:1px;line-height:1}
+  .habitgrid .hcell.dayhead .dnum{font-size:13px;color:var(--text)}
+  .habitgrid .hcell.dayhead.today .dnum{color:var(--accent2)}
+
+  .addhabit{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:flex-end}
+  .addhabit .field{flex:1;min-width:140px;margin-bottom:0}
+  .addhabit button{flex-shrink:0}
+
+  .iconpick{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+  .iconpick .ic{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:15px;cursor:pointer;transition:transform .1s}
+  .iconpick .ic:hover{transform:scale(1.1)}
+  .iconpick .ic.sel{border-color:var(--accent);background:rgba(217,70,239,.14);box-shadow:0 0 0 2px rgba(217,70,239,.25)}
+
+  .habit-empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- ============ SIGN-IN OVERLAY ============ -->
+<div id="overlay" class="hidden">
+  <div class="signin">
+    <h2>Darsh Fitness — Habits</h2>
+    <p id="signinSub">Sign in to track habits across devices.</p>
+    <button class="gbtn" id="googleBtn" onclick="cloudSignIn()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="signinNotice" class="notice hidden"></div>
+    <button class="ghost" style="width:100%" onclick="signInGuest()">Continue as guest (this device only)</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+<header>
+  <h1>
+    <a href="index.html" class="brand-link" title="Back to home" aria-label="Go to Darsh Fitness home page">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      </span>
+      <span class="brand-name"><span class="b1">Darsh Fitness</span><span class="b2">Habit tracker</span></span>
+    </a>
+  </h1>
+  <div class="toolbar">
+    <span class="pill" id="modePill">Local</span>
+    <span class="pill" id="goalPill">Goal: 2000 kcal</span>
+    <button class="ghost sm" onclick="exportData()">Export to Excel</button>
+    <span class="user" id="userBox"></span>
+    <button class="ghost sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <a href="app.html" class="tab"><span class="tab-icon">🍽</span><span class="tab-label">Track</span></a>
+  <a href="fasting.html" class="tab"><span class="tab-icon">⏱</span><span class="tab-label">Fasting</span></a>
+  <a href="goals.html" class="tab"><span class="tab-icon">🎯</span><span class="tab-label">Goals</span></a>
+  <a href="habits.html" class="tab active"><span class="tab-icon">🔥</span><span class="tab-label">Habits</span></a>
+  <a href="insights.html" class="tab"><span class="tab-icon">📊</span><span class="tab-label">Insights</span></a>
+</nav>
+
+<div class="wrap">
+
+  <div class="card full" style="margin-bottom:18px">
+    <h2>This month at a glance</h2>
+    <div class="statgrid">
+      <div class="s"><div class="l">Habits tracked</div><div class="v" id="statTotal">0</div><div class="sub">auto + custom</div></div>
+      <div class="s"><div class="l">Today's hits</div><div class="v" id="statToday">0 / 0</div><div class="sub">completed today</div></div>
+      <div class="s"><div class="l">Best streak</div><div class="v" id="statStreak">0</div><div class="sub">days in a row</div></div>
+    </div>
+  </div>
+
+  <div class="card full" style="margin-bottom:18px">
+    <div class="monthnav">
+      <button class="ghost sm" onclick="shiftMonth(-1)">‹</button>
+      <span class="title" id="monthTitle">—</span>
+      <button class="ghost sm" onclick="shiftMonth(1)">›</button>
+      <button class="ghost sm" onclick="goCurrentMonth()">This month</button>
+      <span class="sub" style="margin-left:auto" id="monthMeta"></span>
+    </div>
+    <div class="habitscroll">
+      <div class="habitgrid" id="habitGrid"></div>
+    </div>
+    <p class="sub" style="margin-top:10px;font-size:12px"><span style="color:var(--accent2)">●</span> auto — derived from your fitness data &nbsp; · &nbsp; <span style="color:#34d399">●</span> manual — tap any cell to toggle &nbsp; · &nbsp; <span style="color:var(--accent2);border:1px solid var(--accent2);padding:0 4px;border-radius:4px">today</span></p>
+  </div>
+
+  <div class="card full">
+    <h2>Add a custom habit</h2>
+    <p class="sub" style="margin:-6px 0 14px">e.g. "Gym", "Cold shower", "No alcohol", "8 glasses water". Tick the days you complete it.</p>
+    <div class="addhabit">
+      <div class="field"><label>Habit name</label><input type="text" id="newHabitName" placeholder="e.g. Gym" maxlength="40"></div>
+    </div>
+    <label style="margin-top:8px">Icon</label>
+    <div class="iconpick" id="iconPicker"></div>
+    <button onclick="addHabit()" style="margin-top:12px">+ Add habit</button>
+    <div class="syncmsg" id="syncMsg"></div>
+  </div>
+
+</div>
+<footer id="footer">Your data is stored privately per account.</footer>
+</div>
+
+<script src="shared.js"></script>
+<script>
+/* ============================================================
+   HABITS PAGE — monthly grid, auto + manual habits, streaks
+   ============================================================ */
+
+/* ---------- Auto-derived habits (definitions) ---------- */
+const AUTO_HABITS = [
+  {
+    id: 'auto_calorie',
+    name: 'Stayed within calorie goal',
+    icon: '🎯',
+    auto: true,
+    isComplete: (date) => {
+      const t = totalFor(date);
+      return t > 0 && t <= state.goal;
+    }
+  },
+  {
+    id: 'auto_log',
+    name: 'Logged at least one meal',
+    icon: '🍽',
+    auto: true,
+    isComplete: (date) => dayEntries(date).length > 0
+  },
+  {
+    id: 'auto_protein',
+    name: 'Hit protein goal',
+    icon: '💪',
+    auto: true,
+    isComplete: (date) => {
+      const m = macroTotals(date);
+      return m.p > 0 && m.p >= (state.goals.protein || 120);
+    }
+  },
+  {
+    id: 'auto_sugar',
+    name: 'Stayed under sugar limit',
+    icon: '🍬',
+    auto: true,
+    isComplete: (date) => {
+      const m = macroTotals(date);
+      const goal = state.goals.sugar || 36;
+      // Only count if some logging happened (avoid free-pass for blank days)
+      return dayEntries(date).length > 0 && m.sg <= goal;
+    }
+  },
+  {
+    id: 'auto_fast',
+    name: 'Completed a fast',
+    icon: '⏱',
+    auto: true,
+    isComplete: (date) => {
+      const cf = state.fasting; if(!cf || !cf.history) return false;
+      return cf.history.some(h =>
+        h.end && h.end.slice(0,10) === date && h.achievedHours >= h.targetHours
+      );
+    }
+  }
+];
+
+const ICON_OPTIONS = ['💪','🏃','📖','🧘','💧','🥗','😴','🚫','❄️','☀️','📝','🧠','💰','🚶','🚴','🏋️','🎯','✨','🔥','💎'];
+
+/* ---------- Month nav state ---------- */
+let viewYear, viewMonth; // viewMonth is 0-indexed
+function initMonth(){
+  const now = new Date();
+  viewYear = now.getFullYear();
+  viewMonth = now.getMonth();
+}
+function shiftMonth(n){
+  viewMonth += n;
+  if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+  else if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+  renderHabitGrid();
+}
+function goCurrentMonth(){ initMonth(); renderHabitGrid(); }
+function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
+function dayISO(y,m,d){ return y+"-"+String(m+1).padStart(2,'0')+"-"+String(d).padStart(2,'0'); }
+
+/* ---------- Habit data ---------- */
+function allHabits(){
+  // Auto habits first, then user's manual habits
+  const manual = (state.habits||[]).map(h => ({...h, auto:false}));
+  return [...AUTO_HABITS, ...manual];
+}
+function isHabitDoneOn(habit, dateStr){
+  if(habit.auto) return !!habit.isComplete(dateStr);
+  return !!(habit.checks && habit.checks[dateStr]);
+}
+function habitStreak(habit){
+  const today = new Date(); today.setHours(0,0,0,0);
+  let streak = 0;
+  for(let i=0;i<365;i++){
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    const ds = localISO(d);
+    if(isHabitDoneOn(habit, ds)) streak++;
+    else if(i===0) continue; // grace for today
+    else break;
+  }
+  return streak;
+}
+
+/* ---------- Toggle / add / delete ---------- */
+async function toggleHabit(habitId, dateStr){
+  const h = (state.habits||[]).find(x=>x.id===habitId);
+  if(!h) return;
+  h.checks = h.checks || {};
+  if(h.checks[dateStr]) delete h.checks[dateStr];
+  else h.checks[dateStr] = true;
+  await persistGoals();
+  renderHabitGrid();
+  renderStatTiles();
+}
+let _selectedIcon = '💪';
+function renderIconPicker(){
+  const el = document.getElementById('iconPicker');
+  el.innerHTML = ICON_OPTIONS.map(ic=>`<span class="ic${ic===_selectedIcon?' sel':''}" data-ic="${ic}" onclick="pickIcon('${ic}')">${ic}</span>`).join('');
+}
+function pickIcon(ic){ _selectedIcon = ic; renderIconPicker(); }
+async function addHabit(){
+  const name = document.getElementById('newHabitName').value.trim();
+  if(!name){ alert("Enter a habit name first."); return; }
+  state.habits = state.habits || [];
+  state.habits.push({
+    id: 'h_'+Date.now(),
+    name,
+    icon: _selectedIcon,
+    createdAt: Date.now(),
+    checks: {}
+  });
+  document.getElementById('newHabitName').value = '';
+  _selectedIcon = '💪';
+  renderIconPicker();
+  await persistGoals();
+  renderHabitGrid();
+  renderStatTiles();
+}
+async function deleteHabit(id){
+  if(!confirm("Delete this habit and all its history? This can't be undone.")) return;
+  state.habits = (state.habits||[]).filter(h=>h.id!==id);
+  await persistGoals();
+  renderHabitGrid();
+  renderStatTiles();
+}
+
+/* ---------- Render grid ---------- */
+function renderHabitGrid(){
+  const days = daysInMonth(viewYear, viewMonth);
+  const today = localISO(new Date());
+  const monthDate = new Date(viewYear, viewMonth, 1);
+  document.getElementById('monthTitle').textContent = monthDate.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+
+  const habits = allHabits();
+  if(!habits.length){
+    document.getElementById('habitGrid').innerHTML = '<div class="habit-empty">No habits yet. Add one below.</div>';
+    return;
+  }
+
+  // Build CSS grid template: 1 name column + 1 column per day
+  const cols = `240px repeat(${days}, 38px)`;
+  let html = `<style>#habitGrid{grid-template-columns:${cols}}</style>`;
+
+  // Header row
+  html += `<div class="hcell namecell head"><span style="color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase">Habit</span></div>`;
+  for(let d=1; d<=days; d++){
+    const ds = dayISO(viewYear, viewMonth, d);
+    const date = new Date(viewYear, viewMonth, d);
+    const dow = date.toLocaleDateString(undefined,{weekday:'narrow'});
+    const isToday = ds === today;
+    html += `<div class="hcell head dayhead${isToday?' today':''}"><span>${dow}</span><span class="dnum">${d}</span></div>`;
+  }
+
+  // Habit rows
+  let monthTotalDone = 0, monthTotalCells = 0;
+  habits.forEach(h=>{
+    const streak = habitStreak(h);
+    const autoBadge = h.auto ? '<span class="hauto">auto</span>' : '';
+    const delBtn = h.auto ? '' : `<button class="hdel" title="Delete habit" onclick="deleteHabit('${h.id}')">×</button>`;
+    const streakBadge = streak > 0 ? `<span class="hstreak">🔥${streak}</span>` : '';
+    html += `<div class="hcell namecell"><span class="hicon">${h.icon||'•'}</span><span class="hname">${escapeHtml(h.name)}</span>${streakBadge}${autoBadge}${delBtn}</div>`;
+    for(let d=1; d<=days; d++){
+      const ds = dayISO(viewYear, viewMonth, d);
+      const cellDate = new Date(viewYear, viewMonth, d);
+      const isFuture = ds > today;
+      const isToday = ds === today;
+      const done = !isFuture && isHabitDoneOn(h, ds);
+      if(!isFuture) monthTotalCells++;
+      if(done) monthTotalDone++;
+      const cls = ['daycol'];
+      if(h.auto) cls.push('auto');
+      if(isFuture) cls.push('future');
+      if(isToday) cls.push('today');
+      if(done) cls.push('done');
+      const click = (!h.auto && !isFuture) ? `onclick="toggleHabit('${h.id}','${ds}')"` : '';
+      html += `<div class="hcell ${cls.join(' ')}" ${click}>${done?'✓':''}</div>`;
+    }
+  });
+
+  document.getElementById('habitGrid').innerHTML = html;
+  const pct = monthTotalCells ? Math.round(monthTotalDone/monthTotalCells*100) : 0;
+  document.getElementById('monthMeta').textContent = `${monthTotalDone} / ${monthTotalCells} completions · ${pct}% this month`;
+}
+
+function renderStatTiles(){
+  const habits = allHabits();
+  document.getElementById('statTotal').textContent = habits.length;
+
+  const today = localISO(new Date());
+  let doneToday = 0;
+  habits.forEach(h=>{ if(isHabitDoneOn(h, today)) doneToday++; });
+  document.getElementById('statToday').textContent = `${doneToday} / ${habits.length}`;
+
+  let best = 0;
+  habits.forEach(h=>{ const s = habitStreak(h); if(s > best) best = s; });
+  document.getElementById('statStreak').textContent = best;
+}
+
+function pageRender(){
+  paintGoalPill();
+  renderIconPicker();
+  renderHabitGrid();
+  renderStatTiles();
+}
+
+initMonth();
+</script>
+</body>
+</html>
