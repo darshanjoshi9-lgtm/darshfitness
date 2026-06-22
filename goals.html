@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goals — Darsh Fitness</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<meta name="theme-color" content="#0b0d1c">
+
+<link rel="canonical" href="https://darshfitness.in/goals.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="description" content="Set daily calorie + macro goals, or calculate a science-based weight-loss target from your profile. Free, no ads.">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://darshfitness.in/goals.html">
+<meta property="og:title" content="Darsh Fitness — Set your goals">
+<meta property="og:description" content="Daily calorie + macro goals. Mifflin-St Jeor calorie calculator. Free.">
+<meta property="og:image" content="https://darshfitness.in/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Darsh Fitness">
+<meta property="og:locale" content="en_IN">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Darsh Fitness — Goals">
+<meta name="twitter:description" content="Daily calorie + macro goals. Calorie calculator. Free.">
+<meta name="twitter:image" content="https://darshfitness.in/og-image.png">
+
+<link rel="stylesheet" href="shared.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- ============ SIGN-IN OVERLAY ============ -->
+<div id="overlay">
+  <div class="signin">
+    <h2>Darsh Fitness — Goals</h2>
+    <p id="signinSub">Sign in to keep your goals across devices.</p>
+    <button class="gbtn" id="googleBtn" onclick="cloudSignIn()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="signinNotice" class="notice hidden"></div>
+    <button class="ghost" style="width:100%" onclick="signInGuest()">Continue as guest (this device only)</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+<header>
+  <h1>
+    <a href="index.html" class="brand-link" title="Back to home" aria-label="Go to Darsh Fitness home page">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      </span>
+      <span class="brand-name"><span class="b1">Darsh Fitness</span><span class="b2">Goals &amp; profile</span></span>
+    </a>
+  </h1>
+  <div class="toolbar">
+    <span class="pill" id="modePill">Local</span>
+    <span class="pill" id="goalPill">Goal: 2000 kcal</span>
+    <button class="ghost sm" onclick="exportData()">Export to Excel</button>
+    <span class="user" id="userBox"></span>
+    <button class="ghost sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <a href="app.html" class="tab"><span class="tab-icon">🍽</span><span class="tab-label">Track</span></a>
+  <a href="fasting.html" class="tab"><span class="tab-icon">⏱</span><span class="tab-label">Fasting</span></a>
+  <a href="goals.html" class="tab active"><span class="tab-icon">🎯</span><span class="tab-label">Goals</span></a>
+  <a href="insights.html" class="tab"><span class="tab-icon">📊</span><span class="tab-label">Insights</span></a>
+</nav>
+
+<div class="wrap">
+  <div class="grid">
+
+    <div class="card full">
+      <h2>Weight-loss calorie target</h2>
+      <p class="sub" style="margin:-6px 0 14px">Mifflin-St Jeor BMR formula × activity multiplier, minus a safe deficit. Use the result, or set your own below.</p>
+      <div class="calcgrid">
+        <div class="field"><label>Sex</label><select id="wlSex"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div class="field"><label>Age</label><input type="number" id="wlAge" min="10" max="100" placeholder="years"></div>
+        <div class="field"><label>Height (cm)</label><input type="number" id="wlHeight" min="100" max="250" placeholder="cm"></div>
+        <div class="field"><label>Weight (kg)</label><input type="number" id="wlWeight" min="30" max="300" placeholder="kg"></div>
+        <div class="field"><label>Activity level</label><select id="wlActivity">
+          <option value="1.2">Sedentary (little/no exercise)</option>
+          <option value="1.375">Light (1–3 days/week)</option>
+          <option value="1.55" selected>Moderate (3–5 days/week)</option>
+          <option value="1.725">Active (6–7 days/week)</option>
+          <option value="1.9">Very active (hard daily / physical job)</option>
+        </select></div>
+        <div class="field"><label>Goal</label><select id="wlRate">
+          <option value="0">Maintain weight</option>
+          <option value="0.25">Lose 0.25 kg/week (mild)</option>
+          <option value="0.5" selected>Lose 0.5 kg/week (steady)</option>
+          <option value="0.75">Lose 0.75 kg/week (aggressive)</option>
+        </select></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div class="field" style="display:flex;align-items:flex-end"><button class="ghost" onclick="calcTarget()" style="width:100%">Calculate target</button></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button id="applyTargetBtn" onclick="applyTarget()" style="width:100%" disabled>Use as my goals</button></div>
+      </div>
+      <div class="calcres hidden" id="calcRes"></div>
+    </div>
+
+    <div class="card full">
+      <h2>Daily goals</h2>
+      <p class="sub" style="margin:-6px 0 14px">Used to colour your daily progress bars on the Track page.</p>
+      <div class="row" style="flex-wrap:wrap">
+        <div class="field"><label>Calories</label><input type="number" id="goalInput" min="0"></div>
+        <div class="field"><label>Protein (g)</label><input type="number" id="goalProtein" min="0"></div>
+        <div class="field"><label>Carbs (g)</label><input type="number" id="goalCarbs" min="0"></div>
+        <div class="field"><label>Fat (g)</label><input type="number" id="goalFat" min="0"></div>
+        <div class="field"><label>Fiber (g)</label><input type="number" id="goalFiber" min="0"></div>
+        <div class="field"><label>Sugar (g)</label><input type="number" id="goalSugar" min="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button class="ghost" onclick="saveGoal()" style="width:100%">Save goals</button></div>
+      </div>
+      <div class="syncmsg" id="syncMsg"></div>
+    </div>
+
+  </div>
+</div>
+<footer id="footer">Your data is stored privately per account.</footer>
+</div>
+
+<script src="shared.js"></script>
+<script>
+/* ============================================================
+   GOALS PAGE — daily goals editor + calorie target calculator
+   ============================================================ */
+
+/* ---------- Save daily goals manually ---------- */
+async function saveGoal(){
+  const g=parseInt(document.getElementById('goalInput').value,10);
+  if(isNaN(g)||g<=0){ alert("Enter a valid calorie goal."); return; }
+  state.goal=g;
+  state.goals={protein:numVal('goalProtein'),carbs:numVal('goalCarbs'),fat:numVal('goalFat'),fiber:numVal('goalFiber'),sugar:numVal('goalSugar')||36};
+  await persistGoals(); pageRender();
+}
+
+/* ---------- Weight-loss calorie target (Mifflin-St Jeor) ---------- */
+let lastTarget=null;
+function calcTarget(){
+  const sex=document.getElementById('wlSex').value;
+  const age=parseFloat(document.getElementById('wlAge').value);
+  const h=parseFloat(document.getElementById('wlHeight').value);
+  const w=parseFloat(document.getElementById('wlWeight').value);
+  const act=parseFloat(document.getElementById('wlActivity').value);
+  const rate=parseFloat(document.getElementById('wlRate').value);
+  const res=document.getElementById('calcRes');
+  res.classList.remove('hidden');
+  if(isNaN(age)||isNaN(h)||isNaN(w)||age<=0||h<=0||w<=0){
+    res.innerHTML='<span style="color:var(--warn)">Enter your age, height, and weight to calculate.</span>';
+    document.getElementById('applyTargetBtn').disabled=true; lastTarget=null; return;
+  }
+  const bmr=Math.round(10*w + 6.25*h - 5*age + (sex==='male'?5:-161));
+  const tdee=Math.round(bmr*act);
+  const deficit=Math.round(rate*7700/7);
+  let target=tdee-deficit; const floor=sex==='male'?1500:1200; let warn='';
+  if(target<floor){ target=floor; warn=`<div class="brk" style="color:var(--warn)">Capped at a safe minimum of ${floor} kcal/day — consider a gentler goal.</div>`; }
+  const protein=Math.round(1.8*w);
+  const fat=Math.round(target*0.25/9);
+  const carbs=Math.max(0,Math.round((target - protein*4 - fat*9)/4));
+  const fiber=Math.round(target/1000*14);
+  const sugar=sex==='male'?36:25;
+  lastTarget={goal:target, goals:{protein,carbs,fat,fiber,sugar}, profile:{sex,age,h,w,act,rate}};
+  res.innerHTML=`<div class="big">${target} kcal / day</div>
+    <div class="brk">BMR ${bmr} kcal · maintenance ${tdee} kcal · ${rate>0?('cutting −'+deficit+' kcal/day'):'maintenance'}</div>
+    <div class="brk">Suggested macros — Protein ${protein}g · Carbs ${carbs}g · Fat ${fat}g · Fiber ${fiber}g · Sugar &lt;${sugar}g</div>${warn}`;
+  document.getElementById('applyTargetBtn').disabled=false;
+}
+async function applyTarget(){
+  if(!lastTarget){ calcTarget(); if(!lastTarget) return; }
+  state.goal=lastTarget.goal; state.goals={...lastTarget.goals}; state.profile=lastTarget.profile;
+  await persistGoals(); pageRender(); setSync("Saved ✓");
+}
+function fillProfileInputs(){
+  const p=state.profile; if(!p) return;
+  if(document.getElementById('wlAge').value) return;
+  document.getElementById('wlSex').value=p.sex;
+  document.getElementById('wlAge').value=p.age;
+  document.getElementById('wlHeight').value=p.h;
+  document.getElementById('wlWeight').value=p.w;
+  document.getElementById('wlActivity').value=String(p.act);
+  document.getElementById('wlRate').value=String(p.rate);
+}
+
+/* ---------- Page render ---------- */
+function pageRender(){
+  paintGoalPill();
+  document.getElementById('goalInput').value=state.goal;
+  document.getElementById('goalProtein').value=state.goals.protein;
+  document.getElementById('goalCarbs').value=state.goals.carbs;
+  document.getElementById('goalFat').value=state.goals.fat;
+  document.getElementById('goalFiber').value=state.goals.fiber;
+  document.getElementById('goalSugar').value=state.goals.sugar||36;
+  fillProfileInputs();
+}
+</script>
+</body>
+</html>

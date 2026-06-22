@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fasting — Darsh Fitness</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<meta name="theme-color" content="#0b0d1c">
+
+<link rel="canonical" href="https://darshfitness.in/fasting.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="description" content="Intermittent fasting timer — 12 protocols, body stages, history and streaks. Free, no ads.">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://darshfitness.in/fasting.html">
+<meta property="og:title" content="Darsh Fitness — Intermittent fasting timer">
+<meta property="og:description" content="12 IF protocols, body-stage tracking, history and streaks. Free.">
+<meta property="og:image" content="https://darshfitness.in/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Darsh Fitness">
+<meta property="og:locale" content="en_IN">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Darsh Fitness — Fasting timer">
+<meta name="twitter:description" content="12 IF protocols + body stages + streaks. Free.">
+<meta name="twitter:image" content="https://darshfitness.in/og-image.png">
+
+<link rel="stylesheet" href="shared.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- ============ SIGN-IN OVERLAY ============ -->
+<div id="overlay">
+  <div class="signin">
+    <h2>Darsh Fitness — Fasting Timer</h2>
+    <p id="signinSub">Sign in to keep your fasting history across devices.</p>
+    <button class="gbtn" id="googleBtn" onclick="cloudSignIn()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="signinNotice" class="notice hidden"></div>
+    <button class="ghost" style="width:100%" onclick="signInGuest()">Continue as guest (this device only)</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+<header>
+  <h1>
+    <a href="index.html" class="brand-link" title="Back to home" aria-label="Go to Darsh Fitness home page">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      </span>
+      <span class="brand-name"><span class="b1">Darsh Fitness</span><span class="b2">Fasting timer</span></span>
+    </a>
+  </h1>
+  <div class="toolbar">
+    <span class="pill" id="modePill">Local</span>
+    <span class="pill" id="goalPill">Goal: 2000 kcal</span>
+    <button class="ghost sm" onclick="exportData()">Export to Excel</button>
+    <span class="user" id="userBox"></span>
+    <button class="ghost sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <a href="app.html" class="tab"><span class="tab-icon">🍽</span><span class="tab-label">Track</span></a>
+  <a href="fasting.html" class="tab active"><span class="tab-icon">⏱</span><span class="tab-label">Fasting</span></a>
+  <a href="goals.html" class="tab"><span class="tab-icon">🎯</span><span class="tab-label">Goals</span></a>
+  <a href="insights.html" class="tab"><span class="tab-icon">📊</span><span class="tab-label">Insights</span></a>
+</nav>
+
+<div class="wrap">
+
+  <div class="ifcard">
+    <div class="iflayout">
+      <div class="ifring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="ifgrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#d946ef"/>
+              <stop offset="100%" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+          <circle id="ifProgressCircle" cx="60" cy="60" r="54" fill="none" stroke="url(#ifgrad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="ifcenter">
+          <div class="ifcountdown" id="ifCountdown">--:--</div>
+          <div class="ifsubstate" id="ifSubstate">READY</div>
+        </div>
+      </div>
+      <div class="ifctrl-grid">
+        <div class="ifrow">
+          <div class="ifield"><label>Protocol</label>
+            <select id="ifProtocol" onchange="onProtocolChange()">
+              <option value="12:12">12:12 — Circadian (12h fast)</option>
+              <option value="13:11">13:11 — 13h fast</option>
+              <option value="14:10">14:10 — 14h fast</option>
+              <option value="16:8" selected>16:8 — Classic (16h fast)</option>
+              <option value="18:6">18:6 — 18h fast</option>
+              <option value="19:5">19:5 — 19h fast</option>
+              <option value="20:4">20:4 — Warrior (20h fast)</option>
+              <option value="OMAD">OMAD — One Meal A Day (23h fast)</option>
+              <option value="24h">24h — Extended</option>
+              <option value="36h">36h — Extended</option>
+              <option value="48h">48h — Extended</option>
+              <option value="72h">72h — Extended</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="ifield" id="ifCustomWrap" style="display:none"><label>Custom target (h)</label><input type="number" id="ifCustomHours" min="1" max="168" step="0.5" placeholder="e.g. 18" onchange="onProtocolChange()"></div>
+          <div class="ifield" id="ifStartTimeWrap"><label>Start time</label><input type="datetime-local" id="ifStartTime"></div>
+        </div>
+        <button id="ifBtn" onclick="toggleFast()" style="width:100%">Start fast</button>
+      </div>
+    </div>
+    <div class="ifstage" id="ifStage">Pick a protocol and tap <strong>Start fast</strong> when you finish your last meal. You can backdate the start time if needed.</div>
+    <div class="ifmeta">
+      <span class="ifstreak" id="ifStreak">🔥 0 day streak</span>
+      <span class="iftotal" id="ifTotal">0 fasts completed · 0h total</span>
+    </div>
+    <details class="ifhistory" id="ifHistoryWrap" open><summary>Recent fasts</summary><ul id="ifHistoryList"></ul></details>
+  </div>
+
+  <div class="card">
+    <h2>About the body stages</h2>
+    <p class="sub" style="margin-bottom:14px">As the fast progresses, your body shifts through metabolic stages. The stage display above updates live based on elapsed hours.</p>
+    <ul class="timeline" id="stagesList" style="margin-top:6px"></ul>
+  </div>
+
+  <div class="syncmsg" id="syncMsg"></div>
+</div>
+<footer id="footer">Your data is stored privately per account.</footer>
+</div>
+
+<script src="shared.js"></script>
+<script>
+/* ============================================================
+   FASTING PAGE — IF timer + protocols + stages + history
+   ============================================================ */
+
+let _fastingTimer = null;
+
+function getTargetHours(){
+  const sel = document.getElementById('ifProtocol').value;
+  if(sel === 'custom'){
+    const h = parseFloat(document.getElementById('ifCustomHours').value);
+    return (isNaN(h) || h <= 0) ? 16 : Math.min(168, h);
+  }
+  return FAST_PROTOCOLS[sel] || 16;
+}
+function onProtocolChange(){
+  const sel = document.getElementById('ifProtocol').value;
+  document.getElementById('ifCustomWrap').style.display = sel === 'custom' ? 'flex' : 'none';
+  const cf = ensureFasting();
+  cf.protocol = sel;
+  if(sel === 'custom'){
+    const h = parseFloat(document.getElementById('ifCustomHours').value);
+    if(!isNaN(h) && h > 0) cf.customHours = h;
+  }
+  persistGoals();
+  renderFasting();
+}
+async function toggleFast(){
+  const cf = ensureFasting();
+  if(cf.current){
+    const start = new Date(cf.current.startTime);
+    const end = new Date();
+    const elapsedH = (end - start) / 3600000;
+    cf.history.unshift({
+      start: cf.current.startTime,
+      end: end.toISOString(),
+      targetHours: cf.current.targetHours,
+      achievedHours: Math.round(elapsedH * 10) / 10
+    });
+    if(cf.history.length > 50) cf.history.length = 50;
+    cf.current = null;
+  }else{
+    const protocol = document.getElementById('ifProtocol').value;
+    const targetH = getTargetHours();
+    const startInput = document.getElementById('ifStartTime').value;
+    let startDate;
+    if(startInput){
+      startDate = new Date(startInput);
+      if(isNaN(startDate.getTime())) startDate = new Date();
+    }else{
+      startDate = new Date();
+    }
+    if(startDate.getTime() > Date.now()){ alert("Start time can't be in the future."); return; }
+    cf.current = { startTime: startDate.toISOString(), targetHours: targetH, protocol };
+    cf.protocol = protocol;
+  }
+  await persistGoals();
+  renderFasting();
+}
+function setLocalDateTimeInput(el){
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  el.value = local.toISOString().slice(0, 16);
+}
+function renderFasting(){
+  const cf = ensureFasting();
+  const protocolEl = document.getElementById('ifProtocol');
+  const customWrap = document.getElementById('ifCustomWrap');
+  const customIn   = document.getElementById('ifCustomHours');
+  const countdownEl= document.getElementById('ifCountdown');
+  const substateEl = document.getElementById('ifSubstate');
+  const stageEl    = document.getElementById('ifStage');
+  const btn        = document.getElementById('ifBtn');
+  const circle     = document.getElementById('ifProgressCircle');
+  const startWrap  = document.getElementById('ifStartTimeWrap');
+  const startIn    = document.getElementById('ifStartTime');
+  const streakEl   = document.getElementById('ifStreak');
+  const totalEl    = document.getElementById('ifTotal');
+  const histList   = document.getElementById('ifHistoryList');
+  if(!protocolEl) return;
+
+  protocolEl.value = cf.protocol || '16:8';
+  customWrap.style.display = cf.protocol === 'custom' ? 'flex' : 'none';
+  if(cf.protocol === 'custom' && cf.customHours) customIn.value = cf.customHours;
+
+  const circumference = 2 * Math.PI * 54;
+
+  if(!cf.current){
+    countdownEl.textContent = '--:--';
+    substateEl.textContent = 'READY';
+    stageEl.innerHTML = 'Pick a protocol and tap <strong>Start fast</strong> when you finish your last meal. You can backdate the start time if needed.';
+    btn.textContent = 'Start fast';
+    circle.setAttribute('stroke-dashoffset', circumference);
+    startWrap.style.display = 'flex';
+    if(!startIn.value) setLocalDateTimeInput(startIn);
+  }else{
+    const start = new Date(cf.current.startTime);
+    const elapsedMs = Date.now() - start.getTime();
+    const elapsedH = Math.max(0, elapsedMs / 3600000);
+    const targetH = cf.current.targetHours;
+    const pct = Math.min(100, (elapsedH / targetH) * 100);
+    circle.setAttribute('stroke-dashoffset', String(circumference * (1 - pct/100)));
+    if(elapsedH < targetH){
+      const remain = targetH - elapsedH;
+      const remH = Math.floor(remain);
+      const remM = Math.floor((remain - remH) * 60);
+      const remS = Math.floor((((remain - remH) * 60) - remM) * 60);
+      countdownEl.textContent = `${remH}:${String(remM).padStart(2,'0')}:${String(remS).padStart(2,'0')}`;
+      substateEl.textContent = 'TIME TO GOAL';
+    }else{
+      const extra = elapsedH - targetH;
+      const eH = Math.floor(extra);
+      const eM = Math.floor((extra - eH) * 60);
+      countdownEl.textContent = `+${eH}:${String(eM).padStart(2,'0')}`;
+      substateEl.textContent = 'GOAL REACHED ✓';
+    }
+    const st = currentStage(elapsedH);
+    const elapsedHh = Math.floor(elapsedH);
+    const elapsedMm = Math.floor((elapsedH % 1) * 60);
+    stageEl.innerHTML = `<strong>${escapeHtml(st.name)}</strong>${escapeHtml(st.body)}<br><span style="color:var(--muted);font-size:11px;margin-top:6px;display:inline-block">Elapsed: ${elapsedHh}h ${elapsedMm}m · Target: ${targetH}h · Started: ${start.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>`;
+    btn.textContent = 'End fast';
+    startWrap.style.display = 'none';
+  }
+
+  const streak = computeStreak(cf.history);
+  streakEl.innerHTML = `🔥 ${streak} day streak`;
+  const completed = (cf.history || []).length;
+  const totalHours = (cf.history || []).reduce((s,h)=>s+(h.achievedHours||0),0);
+  totalEl.textContent = `${completed} fast${completed===1?'':'s'} completed · ${Math.round(totalHours)}h total`;
+
+  if(!cf.history || !cf.history.length){
+    histList.innerHTML = '<li style="opacity:.6;justify-content:flex-start">No fasts recorded yet.</li>';
+  }else{
+    histList.innerHTML = cf.history.slice(0,15).map(h=>{
+      const date = new Date(h.end);
+      const dateStr = date.toLocaleDateString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      const hit = h.achievedHours >= h.targetHours;
+      return `<li><span>${escapeHtml(dateStr)}</span><span class="${hit?'ifhit':'ifmiss'}">${h.achievedHours}h / ${h.targetHours}h${hit?' ✓':''}</span></li>`;
+    }).join('');
+  }
+}
+
+function renderStagesList(){
+  const cf = ensureFasting();
+  const currentH = cf.current ? Math.max(0,(Date.now()-new Date(cf.current.startTime).getTime())/3600000) : -1;
+  const el = document.getElementById('stagesList');
+  el.innerHTML = FAST_STAGES.map(s=>{
+    const reached = currentH >= s.atH;
+    const dot = reached ? '✅' : '⚪';
+    const colour = reached ? 'var(--accent)' : 'var(--muted)';
+    return `<li style="border-bottom-color:var(--line)">
+      <span class="t" style="color:${colour}">${s.atH}h</span>
+      <span class="meta">
+        <div class="name" style="color:${reached?'var(--text)':'var(--muted)'}">${dot} ${escapeHtml(s.name)}</div>
+        <div class="sub" style="margin-top:4px">${escapeHtml(s.body)}</div>
+      </span>
+    </li>`;
+  }).join('');
+}
+
+function pageRender(){
+  paintGoalPill();
+  renderFasting();
+  renderStagesList();
+}
+
+function startFastingTicker(){
+  if(_fastingTimer) clearInterval(_fastingTimer);
+  _fastingTimer = setInterval(()=>{
+    if(state.fasting && state.fasting.current){
+      renderFasting();
+      renderStagesList();
+    }
+  }, 1000);
+}
+
+window.addEventListener('load', startFastingTicker);
+</script>
+</body>
+</html>
