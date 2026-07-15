@@ -233,6 +233,45 @@
   .foot-inner{display:flex; flex-wrap:wrap; gap:18px; align-items:center; justify-content:space-between; color:var(--muted); font-size:14px}
   .foot-inner .brand{font-size:16px}
 
+  /* ============ Floating Instagram button ============ */
+  .insta-float{
+    position:fixed; z-index:60;
+    right:22px; bottom:22px;
+    width:58px; height:58px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:50%;
+    background:linear-gradient(135deg,#feda75 0%,#fa7e1e 22%,#d62976 50%,#962fbf 76%,#4f5bd5 100%);
+    color:#fff;
+    box-shadow:0 14px 36px -10px rgba(214,41,118,.55), 0 8px 20px -8px rgba(79,91,213,.5);
+    transition:transform .2s ease, box-shadow .2s ease;
+    text-decoration:none;
+    animation:instaPulse 3.4s ease-in-out infinite;
+  }
+  .insta-float:hover{
+    transform:translateY(-3px) scale(1.05);
+    box-shadow:0 22px 46px -10px rgba(214,41,118,.7), 0 14px 30px -10px rgba(79,91,213,.65);
+    animation:none;
+  }
+  .insta-float svg{width:28px; height:28px}
+  .insta-float .tip{
+    position:absolute; right:calc(100% + 12px); top:50%; transform:translateY(-50%);
+    background:rgba(15,18,38,.94); backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.14);
+    color:var(--ink); font-size:13px; font-weight:700; white-space:nowrap;
+    padding:8px 14px; border-radius:99px;
+    opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease;
+  }
+  .insta-float:hover .tip{opacity:1; transform:translateY(-50%) translateX(-2px)}
+  @keyframes instaPulse{
+    0%,100%{box-shadow:0 14px 36px -10px rgba(214,41,118,.55), 0 8px 20px -8px rgba(79,91,213,.5)}
+    50%{box-shadow:0 18px 44px -10px rgba(214,41,118,.75), 0 12px 28px -8px rgba(79,91,213,.7)}
+  }
+  @media (max-width:640px){
+    .insta-float{width:52px; height:52px; right:16px; bottom:16px}
+    .insta-float svg{width:26px; height:26px}
+    .insta-float .tip{display:none} /* the icon is enough on small screens */
+  }
+
   /* ============ Mobile refinements ============
      Tighten padding/typography on small screens so the desktop layout
      translates to a comfortable phone experience without side scroll.
@@ -545,6 +584,19 @@
   }
 })();
 </script>
+
+<!-- Floating Instagram button — follows on Instagram in a new tab -->
+<a class="insta-float" href="https://www.instagram.com/trackmycalori_e/"
+   target="_blank" rel="noopener noreferrer"
+   aria-label="Follow Darsh Fitness on Instagram (@trackmycalori_e)"
+   title="Follow @trackmycalori_e on Instagram">
+  <span class="tip">Follow @trackmycalori_e</span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+  </svg>
+</a>
 
 </body>
 </html>
