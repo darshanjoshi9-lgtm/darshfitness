@@ -42,7 +42,7 @@ let MODE = "local";            // "cloud" | "local"
 let currentUser = null;        // {id, name, email, picture}
 let isGuest = false;
 let auth=null, db=null;
-let state = {goal:2000, goals:{...DEFAULT_GOALS}, profile:null, fasting:null, favourites:[], entries:[]};
+let state = {goal:2000, goals:{...DEFAULT_GOALS}, profile:null, fasting:null, favourites:[], habits:[], entries:[]};
 
 /* ---------- Boot / Auth ---------- */
 function hasStoredFirebaseAuth(){
@@ -133,8 +133,8 @@ function signOut(){
 /* ---------- Storage ---------- */
 function localKey(){ return "calorieTracker_v3_"+(currentUser?currentUser.id:"none"); }
 function loadStateLocal(){
-  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, fasting:s.fasting||null, favourites:s.favourites||[], entries:s.entries||[]}; return; } }catch(e){}
-  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, fasting:null, favourites:[], entries:[]};
+  try{ const raw=localStorage.getItem(localKey()); if(raw){ const s=JSON.parse(raw); state={goal:s.goal||2000, goals:s.goals||{...DEFAULT_GOALS}, profile:s.profile||null, fasting:s.fasting||null, favourites:s.favourites||[], habits:s.habits||[], habitOverrides:s.habitOverrides||{}, entries:s.entries||[]}; return; } }catch(e){}
+  state={goal:2000, goals:{...DEFAULT_GOALS}, profile:null, fasting:null, favourites:[], habits:[], habitOverrides:{}, entries:[]};
 }
 function saveStateLocal(){ try{ localStorage.setItem(localKey(), JSON.stringify(state)); }catch(e){ alert("Could not save locally (storage full). Use Export to back up."); } }
 
@@ -150,6 +150,8 @@ async function loadState(){
       state.profile=(md&&md.profile)||null;
       state.fasting=(md&&md.fasting)||null;
       state.favourites=(md&&md.favourites)||[];
+      state.habits=(md&&md.habits)||[];
+      state.habitOverrides=(md&&md.habitOverrides)||{};
       const snap=await uref.collection("entries").get();
       state.entries=snap.docs.map(d=>({id:d.id, ...d.data()}));
       setSync("");
@@ -161,7 +163,7 @@ async function loadState(){
 async function persistGoals(){
   if(MODE==="cloud"){
     setSync("Saving…");
-    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null, fasting:state.fasting||null, favourites:state.favourites||[]}, {merge:true}); setSync("Saved ✓"); }
+    try{ await db.collection("users").doc(currentUser.id).set({goal:state.goal, goals:state.goals, profile:state.profile||null, fasting:state.fasting||null, favourites:state.favourites||[], habits:state.habits||[], habitOverrides:state.habitOverrides||{}}, {merge:true}); setSync("Saved ✓"); }
     catch(e){ setSync("Save error: "+e.message); }
   }else saveStateLocal();
 }

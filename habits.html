@@ -64,7 +64,10 @@
   .habitgrid .hcell.daycol.done{color:#34d399;background:rgba(52,211,153,.10)}
   .habitgrid .hcell.daycol.auto.done{color:#22d3ee;background:rgba(34,211,238,.10)}
   .habitgrid .hcell.daycol:not(.future):not(.done):hover{background:rgba(255,255,255,.05);color:var(--text)}
-  .habitgrid .hcell.daycol.auto{cursor:default}
+  /* Auto cells: still auto-tick from your data, but you can also tap to override */
+  .habitgrid .hcell.daycol.auto.future{cursor:default}
+  .habitgrid .hcell.daycol.override{position:relative}
+  .habitgrid .hcell.daycol.override::after{content:""; position:absolute; bottom:3px; right:3px; width:5px; height:5px; border-radius:50%; background:var(--warn); opacity:.85; box-shadow:0 0 6px rgba(251,191,36,.7)}
   .habitgrid .hcell.dayhead{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;flex-direction:column;gap:1px;line-height:1}
   .habitgrid .hcell.dayhead .dnum{font-size:13px;color:var(--text)}
   .habitgrid .hcell.dayhead.today .dnum{color:var(--accent2)}
@@ -147,7 +150,7 @@
     <div class="habitscroll">
       <div class="habitgrid" id="habitGrid"></div>
     </div>
-    <p class="sub" style="margin-top:10px;font-size:12px"><span style="color:var(--accent2)">●</span> auto — derived from your fitness data &nbsp; · &nbsp; <span style="color:#34d399">●</span> manual — tap any cell to toggle &nbsp; · &nbsp; <span style="color:var(--accent2);border:1px solid var(--accent2);padding:0 4px;border-radius:4px">today</span></p>
+    <p class="sub" style="margin-top:10px;font-size:12px"><span style="color:var(--accent2)">●</span> auto — from your data (tap to override) &nbsp; · &nbsp; <span style="color:#34d399">●</span> manual — tap to toggle &nbsp; · &nbsp; <span style="color:var(--warn)">●</span> overridden &nbsp; · &nbsp; <span style="color:var(--accent2);border:1px solid var(--accent2);padding:0 4px;border-radius:4px">today</span></p>
   </div>
 
   <div class="card full">
@@ -253,8 +256,17 @@ function allHabits(){
   return [...AUTO_HABITS, ...manual];
 }
 function isHabitDoneOn(habit, dateStr){
-  if(habit.auto) return !!habit.isComplete(dateStr);
+  if(habit.auto){
+    // Manual override wins over derived value if present
+    const ov = state.habitOverrides && state.habitOverrides[habit.id];
+    if(ov && dateStr in ov) return !!ov[dateStr];
+    return !!habit.isComplete(dateStr);
+  }
   return !!(habit.checks && habit.checks[dateStr]);
+}
+function isAutoOverridden(habitId, dateStr){
+  const ov = state.habitOverrides && state.habitOverrides[habitId];
+  return !!(ov && dateStr in ov);
 }
 function habitStreak(habit){
   const today = new Date(); today.setHours(0,0,0,0);
@@ -276,6 +288,28 @@ async function toggleHabit(habitId, dateStr){
   h.checks = h.checks || {};
   if(h.checks[dateStr]) delete h.checks[dateStr];
   else h.checks[dateStr] = true;
+  await persistGoals();
+  renderHabitGrid();
+  renderStatTiles();
+}
+/* Auto habits normally derive from your fitness data. Tapping a cell sets a
+   manual override that flips the current state. If the override matches what
+   the derivation would say anyway, it's removed (keeps state clean). */
+async function toggleAutoOverride(habitId, dateStr){
+  const h = AUTO_HABITS.find(x=>x.id===habitId);
+  if(!h) return;
+  const derived = !!h.isComplete(dateStr);
+  state.habitOverrides = state.habitOverrides || {};
+  state.habitOverrides[habitId] = state.habitOverrides[habitId] || {};
+  const bucket = state.habitOverrides[habitId];
+  const shown = (dateStr in bucket) ? !!bucket[dateStr] : derived;
+  const next = !shown;
+  if(next === derived){
+    delete bucket[dateStr];
+    if(Object.keys(bucket).length === 0) delete state.habitOverrides[habitId];
+  } else {
+    bucket[dateStr] = next;
+  }
   await persistGoals();
   renderHabitGrid();
   renderStatTiles();
@@ -360,7 +394,13 @@ function renderHabitGrid(){
       if(isFuture) cls.push('future');
       if(isToday) cls.push('today');
       if(done) cls.push('done');
-      const click = (!h.auto && !isFuture) ? `onclick="toggleHabit('${h.id}','${ds}')"` : '';
+      if(h.auto && isAutoOverridden(h.id, ds)) cls.push('override');
+      let click = '';
+      if(!isFuture){
+        click = h.auto
+          ? `onclick="toggleAutoOverride('${h.id}','${ds}')" title="Auto from your data — tap to override"`
+          : `onclick="toggleHabit('${h.id}','${ds}')"`;
+      }
       html += `<div class="hcell ${cls.join(' ')}" ${click}>${done?'✓':''}</div>`;
     }
   });
